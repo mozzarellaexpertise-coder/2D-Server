@@ -17,6 +17,8 @@ app.use(
   helmet({
     contentSecurityPolicy: false,
     crossOriginOpenerPolicy: false,
+    // 🔥 ADD THIS LINE TO KILL THE AGENT CLUSTER ERROR
+    originAgentCluster: false 
   })
 );
 
