@@ -109,6 +109,14 @@ app.get('/api/history', async (req, res) => {
   }
 });
 
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    mongo: mongoose.connection.readyState,
+    time: new Date()
+  });
+});
+
 // ---- START ----
 app.listen(PORT, '0.0.0.0', () => {
   console.log('-------------------------------------------');
