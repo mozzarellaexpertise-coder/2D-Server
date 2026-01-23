@@ -165,6 +165,24 @@ app.post('/api/log-tick', async (req, res) => {
   }
 });
 
+app.post('/api/history', async (req, res) => {
+  try {
+    const { set_idx, val_input, draw_date, slot } = req.body;
+    
+    await History.create({
+      draw_date,
+      slot,
+      set_idx,
+      val_input
+    });
+
+    res.sendStatus(200);
+  } catch (err) {
+    console.error('🐘 Elephant Blocked History:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ------------------- HEALTH -------------------
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', time: Date.now() });
