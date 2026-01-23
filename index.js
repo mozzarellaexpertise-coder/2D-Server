@@ -95,6 +95,8 @@ app.get('/load', async (req, res) => {
   }
 });
 
+app.get('/favicon.ico', (res) => res.status(204).end());
+
 // ---- API: HISTORY ----
 app.get('/api/history', async (req, res) => {
   try {
