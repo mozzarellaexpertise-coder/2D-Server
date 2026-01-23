@@ -107,7 +107,7 @@ app.post('/api/log-tick', async (req, res) => {
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 // ---- START ----
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0/0', () => {
   console.log('-------------------------------------------');
   console.log('MANGO ENGINE 5.5 [DIRECT UI MODE]');
   console.log('-------------------------------------------');
