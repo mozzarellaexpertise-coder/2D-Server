@@ -1,35 +1,46 @@
+// ------------------- PONNAR SENTINEL v1.1 -------------------
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
 require('dotenv').config();
+const helmet = require('helmet');
 
 const app = express();
+
+// ------------------- MIDDLEWARE -------------------
 app.use(cors());
 app.use(express.json());
+app.use(helmet());
 
+// ------------------- CONFIG -------------------
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;
 
-// ---- MONGOOSE CONNECT ----
-mongoose.connect(MONGO_URI, { autoIndex: true })
+// ------------------- MONGOOSE CONNECT -------------------
+mongoose.connect(MONGO_URI, { autoIndex: false }) // production: autoIndex false
   .then(() => console.log("✅ Connected to Cloud Mango Vault"))
   .catch(err => console.error("❌ Mango Error:", err.message));
 
-// ---- SCHEMAS ----
+// ------------------- SCHEMAS -------------------
 const HistorySchema = new mongoose.Schema({
-  draw_date: String, slot: String, set_idx: String, val_input: String
+  draw_date: String,
+  slot: String,
+  set_idx: String,
+  val_input: String
 }, { timestamps: true });
 
-const MarketTick = mongoose.model('MarketTick', new mongoose.Schema({
-  set_index: Number, value_index: Number, live_2d: String, tick_time: String,
-  created_at: { type: Date, default: Date.now, index: { expires: 43200 } }
-}));
+const MarketTickSchema = new mongoose.Schema({
+  set_index: Number,
+  value_index: Number,
+  live_2d: String,
+  tick_time: String,
+  created_at: { type: Date, default: Date.now, index: { expires: 43200 } } // 12h TTL
+});
 
 const History = mongoose.model('History', HistorySchema);
+const MarketTick = mongoose.model('MarketTick', MarketTickSchema);
 
-// ---- UI SERVING ----
-// This serves the HTML directly from the server root
+// ------------------- UI ROUTE -------------------
 app.get('/', (req, res) => {
   res.send(`
 <!DOCTYPE html>
@@ -56,7 +67,7 @@ app.get('/', (req, res) => {
     <h3>TOP 3 PREDICTIONS</h3>
     <div id="prediction-list"></div>
   </div>
-  <p style="font-size:0.7rem; color:#475569;">Formula: $Target = \\text{decimal}(\\frac{V}{S} \\times \\frac{100}{3})$</p>
+  <p style="font-size:0.7rem; color:#475569;">Formula: Target = (V / S) * 100 / 3</p>
 
   <script>
     async function update() {
@@ -68,7 +79,6 @@ app.get('/', (req, res) => {
         document.getElementById('live-2d').innerText = data.val_input.toString().slice(-2);
         document.getElementById('status').innerText = "VAULT OK: " + new Date().toLocaleTimeString();
 
-        // Engine A: Tail-Gate Logic
         const v = parseFloat(data.val_input.replace(/,/g, ''));
         const s = parseFloat(data.set_idx);
         if(v && s) {
@@ -78,8 +88,12 @@ app.get('/', (req, res) => {
           document.getElementById('prediction-list').innerHTML = 
             rows.map(r => '<div class="row">'+r+'</div>').join('');
         }
-      } catch(e) { document.getElementById('status').innerText = "OFFLINE"; }
+      } catch(e) {
+        console.error(e);
+        document.getElementById('status').innerText = "OFFLINE";
+      }
     }
+
     setInterval(update, 2000);
     update();
   </script>
@@ -88,27 +102,48 @@ app.get('/', (req, res) => {
   `);
 });
 
-// ---- API ROUTES ----
+// ------------------- API ROUTES -------------------
+// Latest history
 app.get('/load', async (req, res) => {
   try {
-    const result = await History.findOne().sort({ _id: -1 });
+    const result = await History.findOne().sort({ _id: -1 }).lean();
     res.json(result || {});
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
+// Log Market Tick
 app.post('/api/log-tick', async (req, res) => {
   try {
     const { set_index, value_index, twod, timestamp } = req.body;
-    await MarketTick.create({ set_index, value_index, live_2d: twod, tick_time: timestamp });
+
+    if (set_index == null || value_index == null || !twod) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    await MarketTick.create({
+      set_index,
+      value_index,
+      live_2d: twod,
+      tick_time: timestamp
+    });
+
     res.sendStatus(200);
-  } catch (err) { res.status(503).send("Elephant Blocked"); }
+  } catch (err) {
+    console.error("Elephant Blocked:", err);
+    res.status(503).send("Elephant Blocked");
+  }
 });
 
+// Ignore favicon requests
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
-// ---- START ----
-app.listen(PORT, '0.0.0.0/0', () => {
+// ------------------- START SERVER -------------------
+app.listen(PORT, '0.0.0.0', () => {
   console.log('-------------------------------------------');
   console.log('MANGO ENGINE 5.5 [DIRECT UI MODE]');
+  console.log(`🌐 Listening on PORT ${PORT}`);
   console.log('-------------------------------------------');
 });
