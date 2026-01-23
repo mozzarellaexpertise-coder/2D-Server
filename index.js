@@ -10,7 +10,18 @@ const app = express();
 // ------------------- MIDDLEWARE -------------------
 app.use(cors());
 app.use(express.json());
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        "default-src": ["'self'"],
+        "script-src": ["'self'", "'unsafe-inline'"], // This allows your prediction logic to run
+        "upgrade-insecure-requests": null, // This stops the HTTP/HTTPS error
+      },
+    },
+    crossOriginOpenerPolicy: { policy: "unsafe-none" }, // Clears the Trustworthy Origin error
+  })
+);
 
 // ------------------- CONFIG -------------------
 const PORT = process.env.PORT || 3000;
