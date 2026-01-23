@@ -132,10 +132,15 @@ setInterval(update, 2000);
 // ------------------- API ROUTES -------------------
 app.get('/load', async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.json({ status: 'db-not-ready' });
+    }
+
     const last = await History.findOne().sort({ _id: -1 }).lean();
     res.json(last || {});
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('LOAD ERROR:', err.message);
+    res.json({ error: 'load-failed' });
   }
 });
 
