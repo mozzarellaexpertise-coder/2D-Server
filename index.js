@@ -1,81 +1,118 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const app = express();
 
+const app = express();
 app.use(cors());
 app.use(express.json());
+require('dotenv').config();
 
-// === MONGODB CONFIGURATION (The Mango Fruits) ===
-const MONGO_URI = process.env.MONGO_URI; // Set this in EvenNode Environment Vars
 const PORT = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGO_URI;
 
-mongoose.connect(MONGO_URI)
-    .then(() => console.log("✅ Connected to Cloud Mango Vault (MongoDB)"))
-    .catch(err => console.error("❌ Mango Connection Error:", err));
+if (!MONGO_URI) {
+  console.error("❌ MONGO_URI NOT SET — check EvenNode env vars");
+  process.exit(1);
+}
 
-// === SCHEMAS (Replacing CREATE TABLE) ===
-const History = mongoose.model('History', {
-    draw_date: String,
-    slot: String,
-    set_idx: String,
-    val_input: String,
-    anchor: String,
-    constant: String,
-    created_at: { type: Date, default: Date.now }
+// ---- MONGOOSE CONNECT ----
+mongoose.connect(MONGO_URI, {
+  autoIndex: true
+})
+.then(() => console.log("✅ Connected to Cloud Mango Vault (MongoDB)"))
+.catch(err => {
+  console.error("❌ Mango Connection Error:", err.message);
+  process.exit(1);
 });
 
-const MarketTick = mongoose.model('MarketTick', {
-    tick_time: String,
-    set_index: Number,
-    value_index: Number,
-    live_2d: String,
-    created_at: { type: Date, default: Date.now, expires: 43200 } // Auto-delete after 12 hours (43200s)
+// ---- CONNECTION HEALTH ----
+mongoose.connection.on('disconnected', () => {
+  console.warn("⚠️ Mango disconnected");
+});
+mongoose.connection.on('error', err => {
+  console.error("❌ Mango runtime error:", err);
 });
 
-// --- API: LOG-TICK (5s OPTIMIZED) ---
+// ---- SCHEMAS ----
+const HistorySchema = new mongoose.Schema({
+  draw_date: String,
+  slot: String,
+  set_idx: String,
+  val_input: String,
+  anchor: String,
+  constant: String
+}, { timestamps: { createdAt: 'created_at' } });
+
+const MarketTickSchema = new mongoose.Schema({
+  tick_time: String,
+  set_index: Number,
+  value_index: Number,
+  live_2d: String,
+  created_at: {
+    type: Date,
+    default: Date.now,
+    index: { expires: 43200 } // 12 hours
+  }
+});
+
+const History = mongoose.model('History', HistorySchema);
+const MarketTick = mongoose.model('MarketTick', MarketTickSchema);
+
+// ---- API: LOG TICK ----
 app.post('/api/log-tick', async (req, res) => {
-    const { set, value, twod, timestamp } = req.body;
-    if (set === undefined || value === undefined) return res.status(400).send("No Data");
+  const { set_index, value_index, twod, timestamp } = req.body;
 
-    try {
-        const newTick = new MarketTick({ set_index: set, value_index: value, live_2d: twod, tick_time: timestamp });
-        await newTick.save();
-        console.log(`📡 [${new Date().toLocaleTimeString()}] Mango Tick: ${twod}`);
-        res.sendStatus(200);
-    } catch (err) {
-        res.status(503).send("Elephant Blocked (Mango Busy)");
-    }
+  if (set_index === undefined || value_index === undefined) {
+    return res.status(400).send("No Data");
+  }
+
+  try {
+    await MarketTick.create({
+      set_index,
+      value_index,
+      live_2d: twod,
+      tick_time: timestamp
+    });
+
+    console.log(`📡 Mango Tick: ${twod}`);
+    res.sendStatus(200);
+  } catch (err) {
+    console.error("❌ Tick insert failed:", err.message);
+    res.status(503).send("Elephant Blocked (Mango Busy)");
+  }
 });
 
-// --- API: LOAD PREDICTION DATA (3 MOST POSSIBLE ROWS) ---
+// ---- API: LOAD ----
 app.get('/load', async (req, res) => {
-    const { draw_date, slot } = req.query;
-    try {
-        let query = {};
-        if (draw_date && slot) query = { draw_date, slot };
-        
-        // Fetching with "3 most possible rows" logic in mind
-        const results = await History.find(query).sort({ _id: -1 }).limit(1);
-        res.send(results[0] || {});
-    } catch (err) {
-        res.status(500).send(err.message);
-    }
+  const { draw_date, slot } = req.query;
+
+  try {
+    const query = draw_date && slot ? { draw_date, slot } : {};
+    const result = await History.findOne(query).sort({ _id: -1 });
+    res.json(result || {});
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// --- API: FETCH TICK HISTORY (FOR LISA'S CHART) ---
+// ---- API: HISTORY ----
 app.get('/api/history', async (req, res) => {
-    try {
-        const rows = await MarketTick.find().sort({ _id: -1 }).limit(100);
-        res.json(rows.reverse());
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const rows = await MarketTick.find()
+      .sort({ _id: -1 })
+      .limit(100)
+      .lean();
+
+    res.json(rows.reverse());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
+// ---- START ----
 app.listen(PORT, '0.0.0.0', () => {
-    console.log('-------------------------------------------');
-    console.log('💎 DR. G - MANGO ENGINE 5.5 [EUROPE]');
-    console.log(`🚀 Node Version: ${process.version}`);
-    console.log('-------------------------------------------');
+  console.log('-------------------------------------------');
+  console.log('MANGO ENGINE 5.5 [EUROPE]');
+  console.log(`🚀 Node Version: ${process.version}`);
+  console.log('-------------------------------------------');
 });
