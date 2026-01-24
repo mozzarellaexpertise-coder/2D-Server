@@ -13,40 +13,41 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 // --- 📊 THE CALCULATION ENGINE (3 MOST POSSIBLE ROWS) ---
 const updateBroadcast = async () => {
     try {
-        // 1. Get the last 200 logs to calculate frequency
-        const { data: logs } = await supabase
+        // 1. Get logs
+        const { data: logs, error: logError } = await supabase
             .from('logs')
             .select('twod')
             .order('id', { ascending: false })
-            .limit(200);
+            .limit(100);
 
-        if (!logs || logs.length === 0) return;
+        if (logError || !logs || logs.length === 0) return;
 
-        // 2. Logic: P(n) = f(n) / sum f(i)
+        // 2. Calculate Top 3 Frequency
         const counts = logs.reduce((acc, log) => {
             acc[log.twod] = (acc[log.twod] || 0) + 1;
             return acc;
         }, {});
 
-        // 3. Get Top 3
         const top3 = Object.entries(counts)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 3)
             .map(entry => entry[0])
             .join(', ');
 
-        // 4. Update the Broadcast table
-        await supabase
+        // 3. UPSERT logic (Create if missing, update if exists)
+        const { error: upsertError } = await supabase
             .from('broadcast')
-            .update({ 
+            .upsert({ 
+                id: 'live_feed', 
                 rows: top3, 
                 updated_at: new Date().toISOString() 
-            })
-            .eq('id', 'live_feed');
+            }, { onConflict: 'id' });
 
-        console.log(`✅ Broadcast Updated: [${top3}]`);
+        if (upsertError) console.error("❌ Upsert Failed:", upsertError.message);
+        else console.log(`✅ Broadcast Sync: ${top3}`);
+
     } catch (err) {
-        console.error("❌ Broadcast Error:", err.message);
+        console.error("❌ System Error:", err.message);
     }
 };
 
