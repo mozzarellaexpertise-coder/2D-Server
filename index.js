@@ -2,6 +2,8 @@
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
+const path = require('path');
+
 require('dotenv').config();
 
 const app = express();
@@ -50,6 +52,9 @@ const updateBroadcast = async () => {
         console.error("❌ System Error:", err.message);
     }
 };
+
+// Serve static files from 'public' folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 // --- API: LOG-TICK (Optimized for your 'logs' table) ---
 app.post('/api/log-tick', async (req, res) => {

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PONNAR SENTINEL</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #020617;
+      color: #22ffcc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 { font-size: 3rem; }
+    #live { font-size: 2rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>PONNAR SENTINEL v1.5.1</h1>
+  <p>Supabase Live Broadcast:</p>
+  <div id="live">Loading...</div>
+
+  <script>
+    async function fetchLive() {
+      try {
+        const res = await fetch('/api/live');
+        const data = await res.json();
+        document.getElementById('live').textContent = data.rows || 'No data yet';
+      } catch (err) {
+        document.getElementById('live').textContent = 'Error fetching live feed';
+        console.error(err);
+      }
+    }
+
+    // Refresh every 2 seconds
+    fetchLive();
+    setInterval(fetchLive, 2000);
+  </script>
+</body>
+</html>
