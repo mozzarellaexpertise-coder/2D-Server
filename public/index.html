@@ -1,45 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PONNAR SENTINEL</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #020617;
-      color: #22ffcc;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-    h1 { font-size: 3rem; }
-    #live { font-size: 2rem; margin-top: 2rem; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PONNAR SENTINEL v6.2</title>
+    <style>
+        :root {
+            --bg: #020617;
+            --glass: rgba(15, 23, 42, 0.75);
+            --neon: #22ffcc;
+            --blue: #38bdf8;
+            --red: #ff3b3b;
+            --gold: #ffbf00;
+        }
+
+        body {
+            margin: 0;
+            background: radial-gradient(circle at top, #020617, #000);
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .shell { max-width: 1200px; margin: auto; padding: 1rem; }
+        
+        .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        h1 { font-size: 1.1rem; color: var(--blue); }
+        h1 span { font-size: .7rem; color: #64748b; }
+
+        .pill { padding: .3rem .8rem; border-radius: 999px; font-size: .7rem; text-transform: uppercase; }
+        .LIVE { background: #0f766e; }
+        .OFFLINE { background: #7f1d1d; }
+        .CONNECTING { background: #334155; }
+
+        .alert { 
+            background: var(--red); padding: .6rem; border-radius: 8px; 
+            text-align: center; font-weight: 900; margin-bottom: 1rem;
+            display: none; /* Shown via JS */
+        }
+
+        .dashboard { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
+
+        .card { 
+            background: var(--glass); backdrop-filter: blur(12px); 
+            border-radius: 16px; padding: 1rem; 
+            box-shadow: 0 0 30px rgba(34, 255, 204, .08);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .hero { text-align: center; }
+        .label { font-size: 0.7rem; color: var(--blue); letter-spacing: 2px; }
+        .twod { font-size: 6rem; font-weight: 900; color: var(--neon); }
+        .glow { text-shadow: 0 0 30px rgba(34, 255, 204, .6); }
+
+        .targets { display: flex; justify-content: center; gap: .5rem; margin-top: 10px; }
+        .target { background: var(--gold); color: #000; padding: .3rem .6rem; border-radius: 6px; font-weight: 800; font-size: 0.9rem; }
+
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+        .stat { display: flex; flex-direction: column; font-size: .8rem; margin-bottom: 5px; }
+        .stat span { color: #64748b; margin-bottom: 2px; }
+        .seed { color: var(--neon); font-family: monospace; }
+
+        .chart-card { grid-column: 1/3; height: 180px; padding: 10px; position: relative; }
+        svg { width: 100%; height: 100%; overflow: visible; }
+        polyline { stroke: var(--neon); fill: none; stroke-width: 3; stroke-linecap: round; }
+
+        .foot { text-align: center; font-size: .7rem; color: #64748b; margin-top: 1.5rem; }
+
+        @media (max-width: 768px) {
+            .dashboard { grid-template-columns: 1fr; }
+            .chart-card { grid-column: 1; }
+            .twod { font-size: 4.5rem; }
+        }
+    </style>
 </head>
 <body>
-  <h1>PONNAR SENTINEL v1.5.1</h1>
-  <p>Supabase Live Broadcast:</p>
-  <div id="live">Loading...</div>
 
-  <script>
-    async function fetchLive() {
-      try {
-        const res = await fetch('/api/live');
-        const data = await res.json();
-        document.getElementById('live').textContent = data.rows || 'No data yet';
-      } catch (err) {
-        document.getElementById('live').textContent = 'Error fetching live feed';
-        console.error(err);
-      }
+<main class="shell">
+    <header class="top">
+        <h1>2D Neon Sentinel <span>v6.2</span></h1>
+        <div id="status-pill" class="pill CONNECTING">CONNECTING</div>
+    </header>
+
+    <div id="elephant-alert" class="alert">🐘 ELEPHANT LOCK — DETECTED</div>
+
+    <section class="dashboard">
+        <div class="card hero">
+            <div class="label">LIVE 2D SIGNAL</div>
+            <div id="main-twod" class="twod glow">--</div>
+            <div id="top-three-container" class="targets">
+                <div class="target">--</div>
+                <div class="target">--</div>
+                <div class="target">--</div>
+            </div>
+        </div>
+
+        <div class="card stats">
+            <div class="stat"><span>SET</span><b id="stat-set">0.00</b></div>
+            <div class="stat"><span>VALUE</span><b id="stat-value">0.00</b></div>
+            <div class="stat"><span>SEED</span><b class="seed" id="stat-seed">0.00</b></div>
+            <div class="stat"><span>TIME</span><b id="stat-time">--:--</b></div>
+        </div>
+
+        <div class="card chart-card">
+            <svg id="graph-svg" viewBox="0 0 600 200" preserveAspectRatio="none">
+                <polyline id="graph-line" points=""></polyline>
+            </svg>
+        </div>
+    </section>
+
+    <footer class="foot">🛡 Vault Active • SQL LOGGING: ON • <span id="footer-time">00:00:00</span></footer>
+</main>
+
+<script>
+    let history = [];
+    const MAX_POINTS = 50;
+    let lastSet = "";
+    let freezeTicks = 0;
+
+    async function updateDashboard() {
+        try {
+            // 1. Fetch from your Render API
+            const res = await fetch('/api/live');
+            const broadcastData = await res.json();
+
+            // 2. Fetch Live Market Data (to update the graph and counters)
+            const marketRes = await fetch('https://api.thaistock2d.com/live');
+            const marketData = await marketRes.json();
+            const live = marketData.live;
+
+            // UI Updates
+            document.getElementById('main-twod').textContent = live.twod;
+            document.getElementById('stat-set').textContent = live.set;
+            document.getElementById('stat-value').textContent = live.value;
+            document.getElementById('stat-time').textContent = live.time;
+            document.getElementById('footer-time').textContent = new Date().toLocaleTimeString();
+            
+            // Status Pill
+            const statusPill = document.getElementById('status-pill');
+            statusPill.textContent = live.twod !== "--" ? "LIVE" : "IDLE";
+            statusPill.className = `pill ${live.twod !== "--" ? 'LIVE' : 'CONNECTING'}`;
+
+            // Handle Top 3 Prediction Rows
+            const topThree = (broadcastData.rows || "--, --, --").split(',');
+            const container = document.getElementById('top-three-container');
+            container.innerHTML = topThree.map(num => `<div class="target">${num.trim()}x</div>`).join('');
+
+            // Elephant Lock Logic
+            if (live.set === lastSet && live.set !== "0") {
+                freezeTicks++;
+            } else {
+                freezeTicks = 0;
+            }
+            lastSet = live.set;
+            document.getElementById('elephant-alert').style.display = freezeTicks > 15 ? 'block' : 'none';
+
+            // Graph Update
+            const numericValue = parseFloat(live.value.replace(/,/g, ''));
+            if (!isNaN(numericValue)) {
+                history.push(numericValue);
+                if (history.length > MAX_POINTS) history.shift();
+                drawGraph();
+            }
+
+        } catch (err) {
+            console.error("Dashboard Sync Error:", err);
+            document.getElementById('status-pill').textContent = "OFFLINE";
+            document.getElementById('status-pill').className = "pill OFFLINE";
+        }
     }
 
-    // Refresh every 2 seconds
-    fetchLive();
-    setInterval(fetchLive, 2000);
-  </script>
+    function drawGraph() {
+        const polyline = document.getElementById('graph-line');
+        if (history.length < 2) return;
+
+        const min = Math.min(...history);
+        const max = Math.max(...history);
+        const range = max - min || 1;
+
+        const points = history.map((v, i) => {
+            const x = (i / (history.length - 1)) * 600;
+            const y = 190 - ((v - min) / range) * 170;
+            return `${x},${y}`;
+        }).join(' ');
+
+        polyline.setAttribute('points', points);
+    }
+
+    // Initialize
+    setInterval(updateDashboard, 2000);
+    updateDashboard();
+</script>
+
 </body>
 </html>
