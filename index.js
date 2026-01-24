@@ -1,6 +1,6 @@
-// ------------------- PONNAR SENTINEL v1.3 -------------------
+// ------------------- PONNAR SENTINEL v1.4 (SUPABASE EDITION) -------------------
 const express = require('express');
-const mongoose = require('mongoose');
+const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
 const helmet = require('helmet');
 require('dotenv').config();
@@ -11,142 +11,78 @@ app.set('trust proxy', 1);
 // ------------------- MIDDLEWARE -------------------
 app.use(cors());
 app.use(express.json());
+app.use(helmet({ contentSecurityPolicy: false }));
 
-app.use(
-  helmet({
-    contentSecurityPolicy: false,
-    crossOriginOpenerPolicy: false,
-    originAgentCluster: false
-  })
+// ------------------- SUPABASE CONFIG -------------------
+const supabase = createClient(
+    process.env.SUPABASE_URL, 
+    process.env.SUPABASE_KEY
 );
-
-// 🔒 LOCK TO EVENNODE HOST (CHANGE IF YOU ADD CUSTOM DOMAIN)
-app.use((req, res, next) => {
-  const host = req.headers.host || '';
-  if (!host.includes('kogat.eu-4.evennode.com')) {
-    return res.status(403).send('🚫 Forbidden Host');
-  }
-  next();
-});
-
-// ------------------- CONFIG -------------------
-const PORT = process.env.PORT || 3000;
-const MONGO_URI = process.env.MONGO_URI;
-
-console.log('🌱 MONGO_URI:', MONGO_URI ? 'SET' : 'MISSING');
-
-// ------------------- MONGOOSE -------------------
-mongoose.connect(MONGO_URI, {
-  autoIndex: false
-})
-.then(() => console.log('✅ Connected to Cloud Mango Vault'))
-.catch(err => {
-  console.error('❌ Mango Error:', err.message);
-  process.exit(1);
-});
-
-// ------------------- SCHEMAS -------------------
-const HistorySchema = new mongoose.Schema({
-  draw_date: { type: String, required: true },
-  slot:      { type: String, required: true },
-  set_idx:   { type: String, required: true },
-  val_input: { type: String, required: true }
-}, { timestamps: true });
-
-const MarketTickSchema = new mongoose.Schema({
-  set_index:   { type: Number, required: true },
-  value_index: { type: Number, required: true },
-  live_2d:     { type: String, required: true },
-  tick_time:   { type: String }
-}, { timestamps: true });
-
-const History    = mongoose.model('History', HistorySchema);
-const MarketTick = mongoose.model('MarketTick', MarketTickSchema);
 
 // ------------------- ROUTES -------------------
 
 // UI
 app.get('/', (req, res) => {
-  res.send('<h1>PONNAR SENTINEL v1.3 🦏</h1><p>Status: ONLINE</p>');
+    res.send('<h1>PONNAR SENTINEL v1.4 🦏</h1><p>Database: SUPABASE (Postgres)</p><p>Status: ONLINE</p>');
 });
 
-// LOAD LATEST HISTORY
-app.get('/load', async (req, res) => {
-  try {
-    const last = await History.findOne().sort({ _id: -1 }).lean();
-    res.json(last || {});
-  } catch (err) {
-    console.error('LOAD ERROR:', err.message);
-    res.status(500).json({ error: 'load-failed' });
-  }
+// 📊 PREDICTION LOGIC: 3 MOST POSSIBLE ROWS
+app.get('/api/predictions', async (req, res) => {
+    try {
+        // SQL Logic: Group by val_input, count frequency, sort by highest, limit to 3
+        const { data, error } = await supabase
+            .from('history')
+            .select('val_input')
+            .order('val_input', { ascending: false });
+
+        if (error) throw error;
+
+        // Note: Supabase JS select doesn't do "Group By" directly well without a View,
+        // so we process the 'Current Logic' here as requested.
+        const counts = data.reduce((acc, item) => {
+            acc[item.val_input] = (acc[item.val_input] || 0) + 1;
+            return acc;
+        }, {});
+
+        const top3 = Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([num, freq]) => ({
+                number: num,
+                probability: `${((freq / data.length) * 100).toFixed(2)}%`,
+                frequency: freq
+            }));
+
+        res.json({
+            success: true,
+            formula: "P(n) = f(n) / total",
+            top_rows: top3
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'prediction-failed', details: err.message });
+    }
 });
 
-// INSERT HISTORY
+// INSERT HISTORY (POSTGRES VERSION)
 app.post('/api/history', async (req, res) => {
-  try {
-    console.log('📦 HISTORY BODY:', req.body);
-
     const { draw_date, slot, set_idx, val_input } = req.body;
-    if (!draw_date || !slot || !set_idx || !val_input) {
-      return res.status(400).json({ error: 'Missing fields' });
-    }
+    const { data, error } = await supabase
+        .from('history')
+        .insert([{ draw_date, slot, set_idx, val_input }]);
 
-    const doc = await History.create({
-      draw_date,
-      slot,
-      set_idx,
-      val_input
-    });
-
-    console.log('📝 HISTORY INSERTED:', doc._id);
+    if (error) return res.status(500).json(error);
     res.sendStatus(200);
-
-  } catch (err) {
-    console.error('🐘 HISTORY ERROR:', err.message);
-    res.status(500).json({ error: 'insert-failed' });
-  }
 });
 
-// INSERT MARKET TICK
-app.post('/api/log-tick', async (req, res) => {
-  try {
-    console.log('📦 TICK BODY:', req.body);
-
-    const { set_index, value_index, twod, timestamp } = req.body;
-    if (set_index == null || value_index == null || !twod) {
-      return res.status(400).json({ error: 'Missing fields' });
-    }
-
-    const doc = await MarketTick.create({
-      set_index,
-      value_index,
-      live_2d: twod,
-      tick_time: timestamp
-    });
-
-    console.log('📊 TICK INSERTED:', doc._id);
-    res.sendStatus(200);
-
-  } catch (err) {
-    console.error('🐘 TICK ERROR:', err.message);
-    res.status(503).json({ error: 'tick-failed' });
-  }
-});
-
-// HEALTH
+// HEALTH CHECK
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    mongo: mongoose.connection.readyState,
-    time: Date.now()
-  });
+    res.json({ status: 'ok', engine: 'Supabase', time: Date.now() });
 });
 
-// ------------------- START -------------------
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log('-------------------------------------------');
-  console.log('🦏 PONNAR SENTINEL v1.3 — EVENNODE LOCKED');
-  console.log(`🌐 https://kogat.eu-4.evennode.com`);
-  console.log(`🚀 PORT ${PORT}`);
-  console.log('-------------------------------------------');
+    console.log('-------------------------------------------');
+    console.log('🦏 PONNAR SENTINEL v1.4 — SUPABASE MIGRATED');
+    console.log(`🚀 PORT ${PORT}`);
+    console.log('-------------------------------------------');
 });
