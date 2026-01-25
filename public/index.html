@@ -45,54 +45,67 @@
         <svg viewBox="0 0 600 100" style="width:100%; height:80px;"><polyline id="graph" points="" fill="none" stroke="#22ffcc" stroke-width="3" /></svg>
     </div>
 </div>
-
 <script>
-    // 2. INITIALIZE SUPABASE CLIENT (Use your keys)
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL'; 
-    const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
-    const supabase = lib.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // 1. Correct Initialization (Renamed to 'sentinel' to avoid naming conflicts)
+    const SUPABASE_URL = 'https://rxwlazpznslcaubdobxr.supabase.co'; 
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4d2xhenB6bnNsY2F1YmRvYnhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyNDU0ODEsImV4cCI6MjA4MzgyMTQ4MX0.6KvAPSSzxxR786nP9YvA0NHwmdtpHPu2ljHA81bpBLs';
+    
+    // Note: Use 'supabase.createClient' directly, not 'lib.createClient'
+    const sentinel = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let lastSet = ""; let freezeCount = 0; let history = [];
 
-    // --- A. THE REALTIME LISTENER (Runs only ONCE) ---
-    supabase
+    // --- A. THE REALTIME LISTENER (Reliable & Permanent) ---
+    sentinel
       .channel('live-monitor')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'broadcast' }, (payload) => {
-          console.log("Broadcast Received!", payload.new);
+          console.log("✅ LIVE BROADCAST RECEIVED!", payload.new);
           const data = payload.new;
-          // When the database updates, update the Top 3 and Pat Thee immediately
-          const rows = data.rows.split(',');
-          document.getElementById('top-three').innerHTML = rows.map(r => `<div class="target">${r.trim()}</div>`).join('');
-          document.getElementById('pat-val').innerText = data.pat_thee || "N/A";
+          
+          // Update the Top 3 targets
+          if (data.rows) {
+              const rows = data.rows.split(',');
+              document.getElementById('top-three').innerHTML = rows.map(r => `<div class="target">${r.trim()}</div>`).join('');
+          }
+          
+          // Update Pat Thee
+          if (data.pat_thee) {
+              document.getElementById('pat-val').innerText = data.pat_thee;
+          }
       })
-      .subscribe();
+      .subscribe((status) => {
+          console.log("SENTINEL CONNECTION STATUS:", status);
+      });
 
     // --- B. THE MARKET UPDATER (Runs every 2 seconds) ---
     async function update() {
         try {
-            const res = await fetch('/api/unified-live');
+            // Ensure this points to your Render Server URL
+            const res = await fetch('https://twod-server-f4df.onrender.com/api/unified-live');
             const data = await res.json();
             const { live } = data;
 
-            document.getElementById('main-twod').innerText = live.twod;
-            document.getElementById('stat-set').innerText = live.set;
-            document.getElementById('stat-value').innerText = live.value;
-            document.getElementById('stat-time').innerText = live.time.split(' ')[1] || live.time;
+            if (live) {
+                document.getElementById('main-twod').innerText = live.twod || "--";
+                document.getElementById('stat-set').innerText = live.set || "--";
+                document.getElementById('stat-value').innerText = live.value || "--";
+                document.getElementById('stat-time').innerText = live.time ? (live.time.split(' ')[1] || live.time) : "--";
 
-            // Elephant Lock check
-            if (live.set === lastSet && live.set !== "0" && live.set !== "--") freezeCount++; else freezeCount = 0;
-            lastSet = live.set;
-            document.getElementById('elephant-alert').style.display = freezeCount > 10 ? 'block' : 'none';
+                // Elephant Lock check
+                if (live.set === lastSet && live.set !== "0" && live.set !== "--") freezeCount++; else freezeCount = 0;
+                lastSet = live.set;
+                document.getElementById('elephant-alert').style.display = freezeCount > 10 ? 'block' : 'none';
 
-            // Volatility Graph
-            const val = parseFloat(live.value.replace(/,/g, ''));
-            if(!isNaN(val)) {
-                history.push(val); if(history.length > 30) history.shift();
-                const min = Math.min(...history), max = Math.max(...history), range = (max-min)||1;
-                const pts = history.map((v, i) => `${(i/29)*600},${90-((v-min)/range)*80}`).join(' ');
-                document.getElementById('graph').setAttribute('points', pts);
+                // Volatility Graph
+                const val = parseFloat(live.value.replace(/,/g, ''));
+                if(!isNaN(val)) {
+                    history.push(val); if(history.length > 30) history.shift();
+                    const min = Math.min(...history), max = Math.max(...history), range = (max-min)||1;
+                    const pts = history.map((v, i) => `${(i/29)*600},${90-((v-min)/range)*80}`).join(' ');
+                    document.getElementById('graph').setAttribute('points', pts);
+                }
             }
-        } catch (e) { console.error("Market Sync Error"); }
+        } catch (e) { console.error("Market Sync Error:", e); }
     }
 
     setInterval(update, 2000);

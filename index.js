@@ -47,9 +47,10 @@ const calculatePredictions = async (latestTwod) => {
 // This tells Express to serve any files in your root folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// This ensures that when someone goes to your URL, it opens index.html
+// This ensures that when someone goes to your URL, it opens index.html from the public folder
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    // Added 'public' to the path below
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/api/unified-live', async (req, res) => {
