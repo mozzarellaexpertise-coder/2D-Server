@@ -1,6 +1,7 @@
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -41,6 +42,15 @@ const calculatePredictions = async (latestTwod) => {
         return "--, --, --";
     }
 };
+
+// 2. ADD THIS BLOCK TO SERVE THE HTML
+// This tells Express to serve any files in your root folder
+app.use(express.static(__dirname)); 
+
+// This ensures that when someone goes to your URL, it opens index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 app.get('/api/unified-live', async (req, res) => {
     try {
