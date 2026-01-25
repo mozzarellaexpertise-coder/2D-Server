@@ -45,7 +45,7 @@ const calculatePredictions = async (latestTwod) => {
 
 // 2. ADD THIS BLOCK TO SERVE THE HTML
 // This tells Express to serve any files in your root folder
-app.use(express.static(__dirname)); 
+app.use(express.static(path.join(__dirname, 'public')));
 
 // This ensures that when someone goes to your URL, it opens index.html
 app.get('/', (req, res) => {
