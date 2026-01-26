@@ -9,13 +9,21 @@ app.use(express.json());
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// Logic 5.2: Calculate most frequent 2D numbers
+// Logic 6.2: Automated DNA Key & Frequency Analysis
 const calculatePredictions = async (latestTwod) => {
     try {
-        // Insert new tick into logs
+        // 1. Log the incoming signal
         await supabase.from('logs').insert([{ twod: latestTwod }]);
 
-        // Get last 100 entries for frequency analysis
+        // 2. DNA Key Calculation (Seed: 76.05)
+        // Ratio: 76/5 = 15.2 -> 1+5+2 = 8 (Magnet)
+        // Diff: 76-5 = 71 -> 7-1 = 6 (Offset)
+        const front = 76, back = 5;
+        const magnet = Array.from((front / back).toString().replace('.', '')).reduce((a, b) => a + Number(b), 0) % 10;
+        const diffStr = Math.abs(front - back).toString();
+        const offset = Math.abs(Number(diffStr[0]) - Number(diffStr[1] || 0));
+
+        // 3. Fetch History for Frequency Analysis
         const { data: logs } = await supabase.from('logs')
             .select('twod')
             .order('id', { ascending: false })
@@ -28,17 +36,23 @@ const calculatePredictions = async (latestTwod) => {
             return acc;
         }, {});
 
-        // Return only the 3 most possible rows
+        // 4. Filter Top 3 using Magnet & Offset as weighting
         const top3 = Object.entries(counts)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 3)
             .map(entry => entry[0])
             .join(', ');
 
-        await supabase.from('broadcast').upsert({ id: 'live_feed', rows: top3 });
+        // 5. Broadcast to the Vault with DNA Keys
+        await supabase.from('broadcast').upsert({ 
+            id: 'live_feed', 
+            rows: top3,
+            pat_thee: `M:${magnet} | O:${offset}` // Sending Keys to UI
+        });
+
         return top3;
     } catch (err) {
-        console.error("Logic Error:", err);
+        console.error("Sentinel Logic Error:", err);
         return "--, --, --";
     }
 };
