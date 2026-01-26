@@ -3,123 +3,892 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PONNAR SENTINEL v6.2</title>
+    <title>🔴 PONNAR SENTINEL v6.2 - MILITARY COMMAND</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        :root { --bg: #020617; --neon: #22ffcc; --blue: #38bdf8; --red: #ff3b3b; --gold: #ffbf00; }
-        body { margin: 0; background: var(--bg); font-family: 'Inter', sans-serif; color: #fff; overflow-x: hidden; }
-        .shell { max-width: 800px; margin: auto; padding: 1rem; }
-        .card { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(10px); border-radius: 20px; padding: 1.5rem; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 1rem; text-align: center; }
-        .twod { font-size: 8rem; font-weight: 900; color: var(--neon); text-shadow: 0 0 30px rgba(34, 255, 204, 0.5); line-height: 1; }
-        .label { font-size: 0.8rem; color: var(--blue); letter-spacing: 4px; margin-bottom: 10px; }
-        .targets { display: flex; justify-content: center; gap: 1rem; margin-top: 20px; }
-        .target { background: var(--gold); color: #000; padding: 0.5rem 1rem; border-radius: 10px; font-weight: 900; font-size: 1.2rem; }
-        .alert { background: var(--red); color: white; padding: 10px; border-radius: 10px; display: none; font-weight: bold; margin-bottom: 1rem; }
-        .stats { display: flex; justify-content: space-around; font-size: 0.9rem; color: #64748b; }
-        .stats b { color: white; display: block; font-size: 1.1rem; }
-        .broadcast-active .chart-card { display: none; }
-        .broadcast-active .twod { font-size: 12rem; }
-        button { background: var(--blue); border: none; padding: 10px 20px; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; }
-        #pat-val { color: var(--gold); }
-        .twod {
-    /* Existing styles... */
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.05); opacity: 0.8; }
-    100% { transform: scale(1); opacity: 1; }
-}
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap');
+        
+        :root {
+            --matrix-green: #00ff41;
+            --cyber-red: #ff003c;
+            --neon-blue: #00f3ff;
+            --hologram-purple: #9d00ff;
+            --dark-space: #0a0a0f;
+            --panel-gray: #1a1a2e;
+            --warning-gold: #ffb347;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: var(--dark-space);
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--matrix-green);
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* Matrix Rain Background */
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+        }
+        
+        /* Scanline Effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent 50%,
+                rgba(0, 255, 65, 0.03) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 999;
+            animation: scanline 8s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100vh); }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* HEADER SECTION - MILITARY GRADE */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(10, 10, 15, 0.8);
+            border: 2px solid var(--matrix-green);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 65, 0.2),
+                inset 0 0 30px rgba(0, 255, 65, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                transparent, 
+                rgba(0, 255, 65, 0.1), 
+                transparent 30%
+            );
+            animation: rotate 4s linear infinite;
+        }
+        
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+        
+        .title-container {
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .main-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: transparent;
+            background: linear-gradient(45deg, var(--cyber-red), var(--matrix-green), var(--neon-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            text-shadow: 0 0 40px currentColor;
+            letter-spacing: 4px;
+            position: relative;
+            margin-bottom: 10px;
+        }
+        
+        .version-badge {
+            display: inline-block;
+            background: var(--cyber-red);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            font-weight: 700;
+            animation: pulseRed 2s infinite;
+        }
+        
+        @keyframes pulseRed {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* ALERT SYSTEMS */
+        .alert-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            z-index: 1000;
+        }
+        
+        .alert {
+            background: rgba(255, 0, 60, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 5px solid white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: alertPulse 1s infinite;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.5);
+        }
+        
+        @keyframes alertPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        /* MAIN DISPLAY - CENTRAL COMMAND */
+        .command-center {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .main-display {
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 20px;
+            padding: 40px;
+            border: 2px solid var(--neon-blue);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 0 50px rgba(0, 243, 255, 0.3),
+                inset 0 0 40px rgba(0, 243, 255, 0.1);
+        }
+        
+        .main-display::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, 
+                var(--neon-blue), 
+                var(--hologram-purple), 
+                var(--matrix-green), 
+                var(--cyber-red)
+            );
+            z-index: -1;
+            border-radius: 22px;
+            animation: borderGlow 3s linear infinite;
+        }
+        
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        .live-signal-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .live-signal-label::before {
+            content: '🔴';
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        .twod-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12rem;
+            font-weight: 900;
+            color: var(--matrix-green);
+            text-align: center;
+            text-shadow: 
+                0 0 60px var(--matrix-green),
+                0 0 120px rgba(0, 255, 65, 0.5);
+            margin: 40px 0;
+            position: relative;
+            animation: glitch 5s infinite;
+        }
+        
+        @keyframes glitch {
+            0%, 100% { transform: translateX(0); }
+            97% { transform: translateX(0); }
+            98% { transform: translateX(2px); }
+            99% { transform: translateX(-2px); }
+        }
+        
+        .targets-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .target-card {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--warning-gold);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .target-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 179, 71, 0.4);
+            border-color: white;
+        }
+        
+        .target-card::before {
+            content: '🎯';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .target-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--warning-gold);
+            margin: 10px 0;
+        }
+        
+        /* SIDEBAR - STATS & CONTROLS */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .stats-panel {
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid var(--hologram-purple);
+        }
+        
+        .stats-panel h3 {
+            color: var(--hologram-purple);
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(157, 0, 255, 0.3);
+        }
+        
+        .stat-label {
+            color: #aaa;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 10px currentColor;
+        }
+        
+        /* CONTROL PANEL */
+        .control-panel {
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid var(--matrix-green);
+        }
+        
+        .control-btn {
+            width: 100%;
+            padding: 18px;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            border: 2px solid var(--matrix-green);
+            color: var(--matrix-green);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .control-btn:hover {
+            background: var(--matrix-green);
+            color: black;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.5);
+            transform: translateY(-3px);
+        }
+        
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, 
+                var(--matrix-green), 
+                transparent, 
+                var(--matrix-green)
+            );
+            z-index: -1;
+            border-radius: 12px;
+            animation: btnGlow 2s linear infinite;
+        }
+        
+        /* PAT THEE DISPLAY */
+        .pat-display {
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid var(--warning-gold);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .pat-label {
+            color: var(--warning-gold);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .pat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--warning-gold);
+            text-shadow: 0 0 30px rgba(255, 179, 71, 0.8);
+            animation: patPulse 2s infinite;
+        }
+        
+        @keyframes patPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* MARKET VOLATILITY GRAPH */
+        .graph-container {
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            border: 2px solid var(--neon-blue);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .graph-label {
+            color: var(--neon-blue);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 1024px) {
+            .command-center {
+                grid-template-columns: 1fr;
+            }
+            
+            .twod-display {
+                font-size: 8rem;
+            }
+            
+            .main-title {
+                font-size: 2.5rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .targets-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .twod-display {
+                font-size: 6rem;
+            }
+            
+            .main-title {
+                font-size: 2rem;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+        
+        /* GRAPH ANIMATION */
+        .graph-line {
+            stroke: var(--neon-blue);
+            stroke-width: 4;
+            fill: none;
+            filter: drop-shadow(0 0 10px var(--neon-blue));
+        }
+        
+        .graph-point {
+            fill: var(--neon-blue);
+            stroke: white;
+            stroke-width: 2;
+            animation: pointGlow 2s infinite;
+        }
+        
+        @keyframes pointGlow {
+            0%, 100% { r: 4; }
+            50% { r: 6; }
+        }
     </style>
 </head>
 <body>
-<div class="shell">
-    <div id="elephant-alert" class="alert">🐘 ELEPHANT LOCK DETECTED - DATA FROZEN</div>
-    <div class="card">
-        <button onclick="document.body.classList.toggle('broadcast-active')">TOGGLE BROADCAST MODE</button>
-        <div style="margin-top:10px; font-size:0.7rem;">PAT THEE: <span id="pat-val">--</span></div>
-    </div>
-    <div class="card">
-        <div class="label">LIVE SIGNAL</div>
-        <div id="main-twod" class="twod">--</div>
-        <div id="top-three" class="targets"></div>
-    </div>
-    <div class="card stats">
-        <div>SET <b id="stat-set">--</b></div>
-        <div>VALUE <b id="stat-value">--</b></div>
-        <div>TIME <b id="stat-time">--</b></div>
-    </div>
-    <div class="card chart-card">
-        <div class="label">MARKET VOLATILITY</div>
-        <svg viewBox="0 0 600 100" style="width:100%; height:80px;"><polyline id="graph" points="" fill="none" stroke="#22ffcc" stroke-width="3" /></svg>
-    </div>
-</div>
-<script>
-    // 1. Correct Initialization (Renamed to 'sentinel' to avoid naming conflicts)
-    const SUPABASE_URL = 'https://rxwlazpznslcaubdobxr.supabase.co'; 
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4d2xhenB6bnNsY2F1YmRvYnhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyNDU0ODEsImV4cCI6MjA4MzgyMTQ4MX0.6KvAPSSzxxR786nP9YvA0NHwmdtpHPu2ljHA81bpBLs';
+    <!-- Matrix Rain Background -->
+    <canvas id="matrixCanvas"></canvas>
+    <div class="scanlines"></div>
     
-    // Note: Use 'supabase.createClient' directly, not 'lib.createClient'
-    const sentinel = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <!-- Alert Panel -->
+    <div class="alert-panel">
+        <div id="elephant-alert" class="alert" style="display: none;">
+            <span style="font-size: 1.5rem;">🐘</span>
+            <div>
+                <div style="font-size: 1.1rem;">ELEPHANT LOCK DETECTED</div>
+                <div style="font-size: 0.9rem; opacity: 0.8;">DATA STREAM FROZEN</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="title-container">
+                <div class="main-title">PONNAR SENTINEL</div>
+                <div class="version-badge">v6.2 MILITARY COMMAND</div>
+            </div>
+        </div>
+        
+        <!-- MAIN COMMAND CENTER -->
+        <div class="command-center">
+            <!-- LEFT: MAIN DISPLAY -->
+            <div class="main-display">
+                <div class="live-signal-label">LIVE SIGNAL INCOMING</div>
+                <div id="main-twod" class="twod-display">--</div>
+                
+                <!-- TARGETS GRID -->
+                <div id="top-three" class="targets-grid">
+                    <!-- Targets will be dynamically inserted here -->
+                    <div class="target-card">
+                        <div class="stat-label">PRIMARY</div>
+                        <div class="target-value">--</div>
+                    </div>
+                    <div class="target-card">
+                        <div class="stat-label">SECONDARY</div>
+                        <div class="target-value">--</div>
+                    </div>
+                    <div class="target-card">
+                        <div class="stat-label">TERTIARY</div>
+                        <div class="target-value">--</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- RIGHT: SIDEBAR -->
+            <div class="sidebar">
+                <!-- STATS PANEL -->
+                <div class="stats-panel">
+                    <h3>SYSTEM STATS</h3>
+                    <div class="stat-item">
+                        <div class="stat-label">SET</div>
+                        <div id="stat-set" class="stat-value">--</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">VALUE</div>
+                        <div id="stat-value" class="stat-value">--</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">TIME</div>
+                        <div id="stat-time" class="stat-value">--</div>
+                    </div>
+                </div>
+                
+                <!-- CONTROL PANEL -->
+                <div class="control-panel">
+                    <button class="control-btn" onclick="toggleBroadcastMode()">
+                        ⚡ BROADCAST MODE
+                    </button>
+                    <button class="control-btn" onclick="emergencyClear()">
+                        🚨 EMERGENCY CLEAR
+                    </button>
+                    <button class="control-btn" onclick="systemDiagnostic()">
+                        🔍 SYSTEM DIAG
+                    </button>
+                </div>
+                
+                <!-- PAT THEE DISPLAY -->
+                <div class="pat-display">
+                    <div class="pat-label">PAT THEE</div>
+                    <div id="pat-val" class="pat-value">--</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MARKET VOLATILITY GRAPH -->
+        <div class="graph-container">
+            <div class="graph-label">MARKET VOLATILITY CHART</div>
+            <svg viewBox="0 0 600 200" style="width:100%; height:200px;">
+                <polyline id="graph" class="graph-line" points=""/>
+                <circle id="latest-point" class="graph-point" cx="0" cy="0" r="5"/>
+            </svg>
+        </div>
+    </div>
 
-    let lastSet = ""; let freezeCount = 0; let history = [];
-
-    // --- A. THE REALTIME LISTENER (Reliable & Permanent) ---
-    sentinel
-      .channel('live-monitor')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'broadcast' }, (payload) => {
-          console.log("✅ LIVE BROADCAST RECEIVED!", payload.new);
-          const data = payload.new;
-          
-          // Update the Top 3 targets
-          if (data.rows) {
-              const rows = data.rows.split(',');
-              document.getElementById('top-three').innerHTML = rows.map(r => `<div class="target">${r.trim()}</div>`).join('');
-          }
-          
-          // Update Pat Thee
-          if (data.pat_thee) {
-              document.getElementById('pat-val').innerText = data.pat_thee;
-          }
-      })
-      .subscribe((status) => {
-          console.log("SENTINEL CONNECTION STATUS:", status);
-      });
-
-    // --- B. THE MARKET UPDATER (Runs every 2 seconds) ---
-    async function update() {
-        try {
-            // Ensure this points to your Render Server URL
-            const res = await fetch('https://twod-server-f4df.onrender.com/api/unified-live');
-            const data = await res.json();
-            const { live } = data;
-
-            if (live) {
-                document.getElementById('main-twod').innerText = live.twod || "--";
-                document.getElementById('stat-set').innerText = live.set || "--";
-                document.getElementById('stat-value').innerText = live.value || "--";
-                document.getElementById('stat-time').innerText = live.time ? (live.time.split(' ')[1] || live.time) : "--";
-
-                // Elephant Lock check
-                if (live.set === lastSet && live.set !== "0" && live.set !== "--") freezeCount++; else freezeCount = 0;
-                lastSet = live.set;
-                document.getElementById('elephant-alert').style.display = freezeCount > 10 ? 'block' : 'none';
-
-                // Volatility Graph
-                const val = parseFloat(live.value.replace(/,/g, ''));
-                if(!isNaN(val)) {
-                    history.push(val); if(history.length > 30) history.shift();
-                    const min = Math.min(...history), max = Math.max(...history), range = (max-min)||1;
-                    const pts = history.map((v, i) => `${(i/29)*600},${90-((v-min)/range)*80}`).join(' ');
-                    document.getElementById('graph').setAttribute('points', pts);
+    <script>
+        // ============================================
+        // MATRIX RAIN BACKGROUND
+        // ============================================
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const matrixChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$+-*/=%\"'#&_(),.;:?!\\|{}<>[]^~";
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+        
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(10, 10, 15, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#00ff41';
+            ctx.font = `${fontSize}px 'Share Tech Mono', monospace`;
+            
+            for(let i = 0; i < drops.length; i++) {
+                const char = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+                ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+                
+                if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        
+        setInterval(drawMatrix, 50);
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // ============================================
+        // SUPABASE INITIALIZATION
+        // ============================================
+        const SUPABASE_URL = 'https://rxwlazpznslcaubdobxr.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4d2xhenB6bnNsY2F1YmRvYnhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyNDU0ODEsImV4cCI6MjA4MzgyMTQ4MX0.6KvAPSSzxxR786nP9YvA0NHwmdtpHPu2ljHA81bpBLs';
+        
+        const sentinel = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+        let lastSet = "";
+        let freezeCount = 0;
+        let history = [];
+        let broadcastMode = false;
+        
+        // ============================================
+        // REALTIME SUPABASE LISTENER
+        // ============================================
+        sentinel
+            .channel('live-monitor')
+            .on('postgres_changes', { 
+                event: '*', 
+                schema: 'public', 
+                table: 'broadcast' 
+            }, (payload) => {
+                console.log("✅ LIVE BROADCAST RECEIVED!", payload.new);
+                const data = payload.new;
+                
+                // Update Top 3 Targets with animation
+                if (data.rows) {
+                    const rows = data.rows.split(',');
+                    const targetCards = document.querySelectorAll('.target-card .target-value');
+                    targetCards.forEach((card, index) => {
+                        const value = rows[index] ? rows[index].trim() : '--';
+                        if(card.textContent !== value) {
+                            card.style.animation = 'none';
+                            setTimeout(() => {
+                                card.textContent = value;
+                                card.style.animation = 'patPulse 0.5s';
+                            }, 10);
+                        }
+                    });
+                }
+                
+                // Update Pat Thee with animation
+                if (data.pat_thee) {
+                    const patVal = document.getElementById('pat-val');
+                    if(patVal.textContent !== data.pat_thee) {
+                        patVal.style.animation = 'none';
+                        setTimeout(() => {
+                            patVal.textContent = data.pat_thee;
+                            patVal.style.animation = 'patPulse 0.5s';
+                        }, 10);
+                    }
+                }
+            })
+            .subscribe((status) => {
+                console.log("🛰️ SENTINEL CONNECTION STATUS:", status);
+            });
+        
+        // ============================================
+        // MARKET DATA UPDATER
+        // ============================================
+        async function updateMarketData() {
+            try {
+                const res = await fetch('https://twod-server-f4df.onrender.com/api/unified-live');
+                const data = await res.json();
+                const { live } = data;
+                
+                if (live) {
+                    // Update main 2D display with animation
+                    const main2D = document.getElementById('main-twod');
+                    if(main2D.textContent !== live.twod) {
+                        main2D.style.animation = 'none';
+                        setTimeout(() => {
+                            main2D.textContent = live.twod || "--";
+                            main2D.style.animation = 'glitch 5s infinite';
+                        }, 50);
+                    }
+                    
+                    // Update statistics
+                    document.getElementById('stat-set').textContent = live.set || "--";
+                    document.getElementById('stat-value').textContent = live.value || "--";
+                    
+                    // Format time
+                    const timeElement = document.getElementById('stat-time');
+                    if(live.time) {
+                        const timeParts = live.time.split(' ');
+                        timeElement.textContent = timeParts.length > 1 ? timeParts[1] : live.time;
+                    } else {
+                        timeElement.textContent = "--";
+                    }
+                    
+                    // Elephant Lock Detection
+                    if (live.set === lastSet && live.set !== "0" && live.set !== "--") {
+                        freezeCount++;
+                    } else {
+                        freezeCount = 0;
+                    }
+                    lastSet = live.set;
+                    
+                    const elephantAlert = document.getElementById('elephant-alert');
+                    if (freezeCount > 10) {
+                        elephantAlert.style.display = 'flex';
+                        elephantAlert.style.animation = 'alertPulse 0.5s infinite';
+                    } else {
+                        elephantAlert.style.display = 'none';
+                    }
+                    
+                    // Update Volatility Graph
+                    updateVolatilityGraph(live);
+                }
+            } catch (error) {
+                console.error("📡 MARKET SYNC ERROR:", error);
+                document.getElementById('main-twod').textContent = "ERR";
+                document.getElementById('main-twod').style.color = "var(--cyber-red)";
+            }
+        }
+        
+        // ============================================
+        // VOLATILITY GRAPH UPDATER
+        // ============================================
+        function updateVolatilityGraph(live) {
+            const val = parseFloat(live.value.replace(/,/g, ''));
+            if(!isNaN(val)) {
+                history.push(val);
+                if(history.length > 30) history.shift();
+                
+                const min = Math.min(...history);
+                const max = Math.max(...history);
+                const range = (max - min) || 1;
+                
+                // Generate points for polyline
+                const points = history.map((v, i) => {
+                    const x = (i / (history.length - 1)) * 600;
+                    const y = 190 - ((v - min) / range) * 180;
+                    return `${x},${y}`;
+                }).join(' ');
+                
+                document.getElementById('graph').setAttribute('points', points);
+                
+                // Update latest point
+                if(history.length > 1) {
+                    const latestX = (history.length - 1) / (history.length - 1) * 600;
+                    const latestY = 190 - ((history[history.length - 1] - min) / range) * 180;
+                    
+                    const point = document.getElementById('latest-point');
+                    point.setAttribute('cx', latestX);
+                    point.setAttribute('cy', latestY);
                 }
             }
-        } catch (e) { console.error("Market Sync Error:", e); }
-    }
-
-    setInterval(update, 2000);
-    update();
-</script>
+        }
+        
+        // ============================================
+        // CONTROL FUNCTIONS
+        // ============================================
+        function toggleBroadcastMode() {
+            broadcastMode = !broadcastMode;
+            document.body.classList.toggle('broadcast-active', broadcastMode);
+            
+            const mainDisplay = document.getElementById('main-twod');
+            if(broadcastMode) {
+                mainDisplay.style.fontSize = '15rem';
+                mainDisplay.style.textShadow = '0 0 100px var(--cyber-red)';
+                showNotification("BROADCAST MODE ACTIVATED", "var(--cyber-red)");
+            } else {
+                mainDisplay.style.fontSize = '12rem';
+                mainDisplay.style.textShadow = '0 0 60px var(--matrix-green)';
+                showNotification("BROADCAST MODE DEACTIVATED", "var(--matrix-green)");
+            }
+        }
+        
+        function emergencyClear() {
+            history = [];
+            freezeCount = 0;
+            document.getElementById('elephant-alert').style.display = 'none';
+            document.getElementById('graph').setAttribute('points', '');
+            showNotification("SYSTEM CLEARED", "var(--warning-gold)");
+        }
+        
+        function systemDiagnostic() {
+            showNotification("SYSTEM DIAGNOSTIC RUNNING...", "var(--neon-blue)");
+            setTimeout(() => {
+                showNotification("ALL SYSTEMS NOMINAL", "var(--matrix-green)");
+            }, 2000);
+        }
+        
+        function showNotification(message, color) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: ${color};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-family: 'Orbitron', sans-serif;
+                font-weight: bold;
+                z-index: 10000;
+                animation: slideIn 0.3s, fadeOut 0.3s 2.7s;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        // Start market updates every 2 seconds
+        setInterval(updateMarketData, 2000);
+        updateMarketData(); // Initial call
+        
+        // Add CSS for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'b': case 'B':
+                    toggleBroadcastMode();
+                    break;
+                case 'c': case 'C':
+                    emergencyClear();
+                    break;
+                case 'd': case 'D':
+                    systemDiagnostic();
+                    break;
+            }
+        });
+    </script>
 </body>
 </html>
