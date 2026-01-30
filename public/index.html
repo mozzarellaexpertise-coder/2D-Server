@@ -1,253 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🔴 PONNAR SENTINEL LIVE</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔴 PONNAR SENTINEL LIVE | BREAK TRACKER</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --matrix-green: #00ff41; --cyber-red: #ff003c; --neon-blue: #00f3ff;
+            --hologram-purple: #9d00ff; --dark-space: #0a0a0f; --panel-gray: #1a1a2e;
+            --warning-gold: #ffb347; --hit-color: #00ff41; --miss-color: #ff003c;
+        }
+        * {margin:0; padding:0; box-sizing:border-box;}
+        body { background: var(--dark-space); font-family: 'Share Tech Mono', monospace; color: var(--matrix-green); overflow-x:hidden; min-height:100vh; }
+        .container { max-width: 1280px; margin:0 auto; padding:10px; display:grid; grid-template-columns: 2fr 1fr; gap:20px; }
+        
+        /* BREAK TRACKER PANEL */
+        .break-panel {
+            background: rgba(26,26,46,0.9); border:2px solid var(--hologram-purple);
+            border-radius:15px; padding:15px; margin-top:20px;
+        }
+        .break-stats { display: flex; justify-content: space-around; margin-bottom: 15px; }
+        .break-counter { text-align: center; }
+        .break-counter span { display: block; font-size: 1.5rem; font-family: 'Orbitron'; }
+        
+        .break-table-wrapper { height: 200px; overflow-y: auto; border: 1px solid #333; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { background: var(--hologram-purple); color: white; padding: 8px; position: sticky; top: 0; }
+        td { padding: 8px; text-align: center; border-bottom: 1px solid #222; }
+        .hit { color: var(--hit-color); font-weight: bold; }
+        .miss { color: var(--miss-color); }
 
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-:root {
-    --matrix-green: #00ff41;
-    --cyber-red: #ff003c;
-    --neon-blue: #00f3ff;
-    --hologram-purple: #9d00ff;
-    --dark-space: #0a0a0f;
-    --panel-gray: #1a1a2e;
-    --warning-gold: #ffb347;
-}
-* {margin:0; padding:0; box-sizing:border-box;}
-body {
-    background: var(--dark-space);
-    font-family: 'Share Tech Mono', monospace;
-    color: var(--matrix-green);
-    overflow-x:hidden;
-    min-height:100vh;
-}
-
-/* MAIN DISPLAY */
-.container {
-    max-width: 1280px;
-    margin:0 auto;
-    padding:10px;
-    display:grid;
-    grid-template-columns: 2fr 1fr;
-    gap:20px;
-}
-
-/* LEFT DISPLAY */
-.main-display {
-    background: rgba(26,26,46,0.9);
-    border-radius:15px;
-    padding:20px;
-    border:2px solid var(--neon-blue);
-    text-align:center;
-}
-.live-signal-label {
-    font-family:'Orbitron', sans-serif;
-    font-size:1rem;
-    color: var(--neon-blue);
-    text-transform: uppercase;
-    margin-bottom:10px;
-}
-.twod-display {
-    font-family:'Orbitron', sans-serif;
-    font-size:6rem;
-    font-weight:900;
-    color: var(--matrix-green);
-    text-shadow:0 0 30px var(--matrix-green);
-    margin:20px 0;
-}
-.targets-grid {
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:10px;
-}
-.target-card {
-    background: rgba(0,0,0,0.7);
-    border:2px solid var(--warning-gold);
-    border-radius:10px;
-    padding:15px;
-    text-align:center;
-}
-.target-value {
-    font-family:'Orbitron', sans-serif;
-    font-size:2rem;
-    font-weight:700;
-    color: var(--warning-gold);
-}
-
-/* RIGHT SIDEBAR */
-.sidebar {
-    display:flex;
-    flex-direction:column;
-    gap:15px;
-}
-.stats-panel, .control-panel, .pat-display {
-    background: rgba(26,26,46,0.9);
-    border-radius:10px;
-    padding:15px;
-    border:2px solid var(--matrix-green);
-}
-.stats-panel h3, .control-panel h3, .pat-label {
-    font-family:'Orbitron', sans-serif;
-    margin-bottom:10px;
-    font-size:1rem;
-    color:var(--neon-blue);
-}
-.stat-item {
-    display:flex;
-    justify-content:space-between;
-    padding:5px 0;
-}
-.stat-value {font-family:'Orbitron'; font-weight:700; color:white;}
-.control-btn {
-    width:100%;
-    padding:10px;
-    margin-bottom:10px;
-    background:var(--matrix-green);
-    color:black;
-    font-family:'Orbitron';
-    font-weight:700;
-    text-transform:uppercase;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-    transition:0.2s;
-}
-.control-btn:hover {
-    background:var(--neon-blue);
-    color:black;
-}
-.pat-value {
-    font-family:'Orbitron';
-    font-size:2rem;
-    font-weight:900;
-    color: var(--warning-gold);
-    text-shadow:0 0 20px rgba(255,179,71,0.8);
-}
-
-/* GRAPH */
-.graph-container {margin-top:20px;}
-.graph-line {stroke: var(--neon-blue); stroke-width:3; fill:none;}
-.graph-point {fill: var(--neon-blue); stroke:white; stroke-width:1;}
-</style>
+        /* EXISTING STYLES */
+        .main-display { background: rgba(26,26,46,0.9); border-radius:15px; padding:20px; border:2px solid var(--neon-blue); text-align:center; }
+        .live-signal-label { font-family:'Orbitron', sans-serif; font-size:1rem; color: var(--neon-blue); text-transform: uppercase; }
+        .twod-display { font-family:'Orbitron', sans-serif; font-size:6rem; font-weight:900; color: var(--matrix-green); text-shadow:0 0 30px var(--matrix-green); margin:10px 0; }
+        .targets-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+        .target-card { background: rgba(0,0,0,0.7); border:2px solid var(--warning-gold); border-radius:10px; padding:15px; }
+        .target-value { font-family:'Orbitron', sans-serif; font-size:2rem; font-weight:700; color: var(--warning-gold); }
+        .sidebar { display:flex; flex-direction:column; gap:15px; }
+        .stats-panel, .control-panel, .pat-display { background: rgba(26,26,46,0.9); border-radius:10px; padding:15px; border:2px solid var(--matrix-green); }
+        .stat-item { display:flex; justify-content:space-between; padding:5px 0; }
+        .stat-value {font-family:'Orbitron'; font-weight:700; color:white;}
+        .control-btn { width:100%; padding:10px; margin-bottom:10px; background:var(--matrix-green); color:black; font-family:'Orbitron'; font-weight:700; border:none; border-radius:5px; cursor:pointer; }
+    </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- LEFT DISPLAY -->
     <div class="main-display">
         <div class="live-signal-label">LIVE SIGNAL</div>
         <div id="main-twod" class="twod-display">--</div>
-        <div id="top-three" class="targets-grid">
-            <div class="target-card"><div class="stat-label">PRIMARY</div><div class="target-value">--</div></div>
-            <div class="target-card"><div class="stat-label">SECONDARY</div><div class="target-value">--</div></div>
-            <div class="target-card"><div class="stat-label">TERTIARY</div><div class="target-value">--</div></div>
+        
+        <div class="break-panel">
+            <h3 style="color:var(--hologram-purple); margin-bottom:10px;">🛡️ SENTINEL BREAK LOGS (1, 5, 6, 7, 8)</h3>
+            <div class="break-stats">
+                <div class="break-counter">TOTAL HITS <span id="hit-count" style="color:var(--hit-color)">0</span></div>
+                <div class="break-counter">TOTAL MISS <span id="miss-count" style="color:var(--miss-color)">0</span></div>
+            </div>
+            <div class="break-table-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>TIME</th><th>2D</th><th>BREAK</th><th>STATUS</th></tr>
+                    </thead>
+                    <tbody id="break-log-body">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <!-- RIGHT SIDEBAR -->
     <div class="sidebar">
         <div class="stats-panel">
             <h3>SYSTEM STATS</h3>
-            <div class="stat-item"><div class="stat-label">SET</div><div id="stat-set" class="stat-value">--</div></div>
-            <div class="stat-item"><div class="stat-label">VALUE</div><div id="stat-value" class="stat-value">--</div></div>
-            <div class="stat-item"><div class="stat-label">TIME</div><div id="stat-time" class="stat-value">--</div></div>
-        </div>
-        <div class="control-panel">
-            <button class="control-btn" onclick="toggleBroadcastMode()">⚡ BROADCAST MODE</button>
-            <button class="control-btn" onclick="emergencyClear()">🚨 CLEAR</button>
-            <button class="control-btn" onclick="systemDiagnostic()">🔍 DIAG</button>
+            <div class="stat-item">SET <span id="stat-set" class="stat-value">--</span></div>
+            <div class="stat-item">VALUE <span id="stat-value" class="stat-value">--</span></div>
+            <div class="stat-item">CONSTANT <span class="stat-value">53.26</span></div>
         </div>
         <div class="pat-display">
             <div class="pat-label">PAT THEE</div>
-            <div id="pat-val" class="pat-value">--</div>
+            <div id="pat-val" class="stat-value" style="font-size:2rem; color:var(--warning-gold)">--</div>
+        </div>
+        <div class="control-panel">
+            <button class="control-btn" onclick="clearLogs()">🧹 CLEAR LOGS</button>
+            <button class="control-btn" onclick="location.reload()">🔄 REBOOT</button>
         </div>
     </div>
-</div>
-
-<!-- VOLATILITY GRAPH -->
-<div class="graph-container">
-    <svg viewBox="0 0 600 200" style="width:100%; height:200px;">
-        <polyline id="graph" class="graph-line" points=""/>
-        <circle id="latest-point" class="graph-point" cx="0" cy="0" r="4"/>
-    </svg>
 </div>
 
 <script>
 const SUPABASE_URL = 'https://rxwlazpznslcaubdobxr.supabase.co'; 
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4d2xhenB6bnNsY2F1YmRvYnhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyNDU0ODEsImV4cCI6MjA4MzgyMTQ4MX0.6KvAPSSzxxR786nP9YvA0NHwmdtpHPu2ljHA81bpBLs'; // ⚠️ replace with safe anon key
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Use your safe key
 const sentinel = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let lastSet = "";
-let freezeCount = 0;
-let history = [];
-let broadcastMode = false;
+let hits = 0;
+let misses = 0;
+let lastResult = "";
+const targetBreaks = [1, 5, 6, 7, 8];
 
-// Realtime listener
-sentinel.channel('live-monitor')
-.on('postgres_changes', { event: '*', schema:'public', table:'broadcast' }, (payload) => {
-    const data = payload.new;
-    if(data.rows){
-        const rows = data.rows.split(',');
-        const targetCards = document.querySelectorAll('.target-card .target-value');
-        targetCards.forEach((card,i)=>{
-            card.textContent = rows[i]?rows[i].trim():'--';
-        });
-    }
-    if(data.pat_thee) document.getElementById('pat-val').textContent = data.pat_thee;
-}).subscribe();
-
-// Market data polling
 async function updateMarketData(){
-    try{
+    try {
         const res = await fetch('https://twod-server-f4df.onrender.com/api/unified-live');
         const data = await res.json();
         const live = data.live;
-        if(live){
-            const main2D = document.getElementById('main-twod');
-            main2D.textContent = live.twod || "--";
-            document.getElementById('stat-set').textContent = live.set || "--";
-            document.getElementById('stat-value').textContent = live.value || "--";
-            document.getElementById('stat-time').textContent = live.time?.split(' ')[1]||"--";
+        
+        if(live && live.twod !== lastResult) {
+            lastResult = live.twod;
+            document.getElementById('main-twod').textContent = live.twod;
+            document.getElementById('stat-set').textContent = live.set;
+            document.getElementById('stat-value').textContent = live.value;
 
-            // Freeze detection
-            if(live.set === lastSet && live.set !== "0" && live.set !== "--") freezeCount++; 
-            else freezeCount=0;
-            lastSet=live.set;
-
-            if(freezeCount>10) console.log("🐘 ELEPHANT ALERT!");
-
-            // Graph update
-            const val=parseFloat(live.value.replace(/,/g,''));
-            if(!isNaN(val)){
-                history.push(val);
-                if(history.length>30) history.shift();
-                const min=Math.min(...history);
-                const max=Math.max(...history);
-                const range=(max-min)||1;
-                const points=history.map((v,i)=>`${i/(history.length-1)*600},${190-((v-min)/range)*180}`).join(' ');
-                document.getElementById('graph').setAttribute('points',points);
-                const latest=document.getElementById('latest-point');
-                latest.setAttribute('cx',600);
-                latest.setAttribute('cy',190-((history[history.length-1]-min)/range)*180);
-            }
+            // Calculate Break
+            const digits = live.twod.split('').map(Number);
+            const sum = digits[0] + (digits[1] || 0);
+            const breakVal = sum % 10;
+            
+            // Check Hit/Miss
+            const isHit = targetBreaks.includes(breakVal);
+            if(isHit) hits++; else misses++;
+            
+            updateLogTable(live.time.split(' ')[1], live.twod, breakVal, isHit);
+            updateCounters();
         }
-    }catch(err){console.error(err);}
+    } catch(err) { console.error("Sync Error:", err); }
 }
-setInterval(updateMarketData,2000);
-updateMarketData();
 
-// Controls
-function toggleBroadcastMode(){broadcastMode=!broadcastMode;}
-function emergencyClear(){history=[]; freezeCount=0;}
-function systemDiagnostic(){console.log("SYSTEM DIAG RUNNING");}
+function updateLogTable(time, twod, breakVal, isHit) {
+    const tbody = document.getElementById('break-log-body');
+    const row = `<tr>
+        <td>${time}</td>
+        <td>${twod}</td>
+        <td>${breakVal}</td>
+        <td class="${isHit ? 'hit' : 'miss'}">${isHit ? '🎯 HIT' : '❌ MISS'}</td>
+    </tr>`;
+    tbody.insertAdjacentHTML('afterbegin', row);
+}
+
+function updateCounters() {
+    document.getElementById('hit-count').textContent = hits;
+    document.getElementById('miss-count').textContent = misses;
+}
+
+function clearLogs() {
+    document.getElementById('break-log-body').innerHTML = "";
+    hits = 0; misses = 0; updateCounters();
+}
+
+setInterval(updateMarketData, 2000);
 </script>
 </body>
 </html>
