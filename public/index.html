@@ -3,184 +3,84 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>🛡️ SENTINEL | STEALTH NEUTRALIZED</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-
+<title>🛡️ SENTINEL | DATA STATS</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#050508;
-  --panel:#0d0d1a;
-  --neon-green:#00ff9d;
-  --neon-blue:#00d9ff;
-  --neon-purple:#bc00ff;
-  --neon-gold:#ffcc00;
-  --dead-gray:#2a2a35;
+:root{ --bg:#050508; --neon-blue:#00d9ff; --neon-green:#00ff9d; --panel:#0d0d1a; --gold:#ffcc00; }
+body{ margin:0; background:var(--bg); color:var(--neon-blue); font-family:'Share Tech Mono', monospace; overflow:hidden; }
+.container{ display:flex; flex-direction:column; height:100vh; padding:15px; gap:15px; }
+
+.broadcast-panel {
+    background: var(--panel);
+    border: 1px solid var(--neon-blue);
+    padding: 15px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1.1rem;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 217, 255, 0.1);
 }
 
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--neon-green);
-  font-family:'Share Tech Mono', monospace;
-  overflow: hidden;
-}
+.twod-main{ font-family:'Orbitron'; font-size: 7.5rem; color:#fff; text-align:center; line-height:1; margin: 20px 0; }
 
-.main-view{
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 10px;
-  gap: 10px;
+.grid { display: grid; grid-template-columns: repeat(5, 2fr); gap: 12px; flex-grow: 1; }
+.card { 
+    background: #0a0a14; border: 1px solid #1a1a2e; border-radius: 8px;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px;
 }
-
-/* TOP HEADER: 2D FOCUS */
-.live-header{
-  background: var(--panel);
-  border: 1px solid var(--neon-blue);
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-  box-shadow: 0 0 15px rgba(0, 217, 255, 0.2);
-}
-
-.twod-display{
-  font-family: 'Orbitron';
-  font-size: 6rem;
-  letter-spacing: -2px;
-  color: #fff;
-  text-shadow: 0 0 30px var(--neon-green);
-}
-
-/* BREAK DISTRIBUTION: VIBRANT & CLEAN */
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  flex-grow: 1;
-}
-
-.break-card {
-  background: var(--panel);
-  border: 1px solid var(--dead-gray);
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  transition: 0.3s;
-}
-
-/* ACTIVE TARGET HIGHLIGHT */
-.target-active {
-  border-color: var(--neon-purple);
-  background: rgba(157, 0, 255, 0.05);
-  box-shadow: inset 0 0 10px rgba(157, 0, 255, 0.2);
-}
-
-.break-card .label {
-  font-size: 1rem;
-  color: var(--neon-blue);
-  opacity: 0.7;
-}
-
-.break-card .val {
-  font-family: 'Orbitron';
-  font-size: 2.5rem;
-  font-weight: 800;
-}
-
-/* DYNAMIC COLORS BASED ON COUNT */
-.high-freq { color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); }
-.mid-freq { color: var(--neon-green); }
-.low-freq { color: var(--dead-gray); }
-
-/* MINI LOG: NO HITS/MISSES, JUST DATA */
-.stealth-log {
-  background: #000;
-  border-radius: 8px;
-  height: 120px;
-  overflow-y: auto;
-  font-size: 0.9rem;
-  padding: 10px;
-  border: 1px solid var(--dead-gray);
-}
-
-.log-entry {
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid #111;
-  padding: 2px 0;
-}
+.card .label { font-size: 0.75rem; color: var(--neon-blue); opacity: 0.6; }
+.card .count { font-family: 'Orbitron'; font-size: 2.5rem; color: var(--neon-green); }
+.high-activity { color: var(--gold) !important; }
 </style>
 </head>
 <body>
 
-<div class="main-view">
-  <div class="live-header">
-    <div class="twod-display" id="main2D">--</div>
-    <div style="font-size: 0.8rem; color: var(--neon-purple);">PROJECT: MONDAY KICKOFF | SENTINEL v5.2</div>
-  </div>
+<div class="container">
+    <div class="broadcast-panel" id="broadcast">📡 INITIALIZING DATA STREAM...</div>
+    
+    <div class="twod-main" id="twod">--</div>
 
-  <div class="grid-container" id="grid">
-    </div>
-
-  <div class="stealth-log" id="log">
-    <div>SYSTEM READY... AWAITING FEED</div>
-  </div>
+    <div class="grid" id="grid"></div>
 </div>
 
 <script>
-const TARGETS = [1,5,6,7,8];
 let freq = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
 let lastVal = null;
 
-function updateUI(twod, brk) {
-  document.getElementById('main2D').innerText = twod;
-  
-  // Update Grid
-  const grid = document.getElementById('grid');
-  grid.innerHTML = '';
-  
-  for(let i=0; i<=9; i++) {
-    const isTarget = TARGETS.includes(i);
-    const count = freq[i];
-    let colorClass = count > 15 ? 'high-freq' : (count > 0 ? 'mid-freq' : 'low-freq');
-    
-    grid.innerHTML += `
-      <div class="break-card ${isTarget ? 'target-active' : ''}">
-        <div class="label">B-${i}</div>
-        <div class="val ${colorClass}">${count}</div>
-      </div>
-    `;
-  }
+async function sync() {
+    try {
+        const rLive = await fetch('/api/unified-live');
+        const dLive = await rLive.json();
+        const live = dLive.live.twod;
+        if(live && live !== lastVal) {
+            lastVal = live;
+            freq[(Number(live[0])+Number(live[1]))%10]++;
+            document.getElementById('twod').innerText = live;
+            renderGrid();
+        }
 
-  // Update Log (Stealth Mode: No "Hit/Miss" text)
-  const log = document.getElementById('log');
-  const entry = document.createElement('div');
-  entry.className = 'log-entry';
-  entry.innerHTML = `<span>${new Date().toLocaleTimeString()}</span> <span>2D: ${twod}</span> <span>BRK: ${brk}</span>`;
-  log.prepend(entry);
+        const rBc = await fetch('/api/get-broadcast');
+        const dBc = await rBc.json();
+        if(dBc?.signal_message) document.getElementById('broadcast').innerText = dBc.signal_message;
+    } catch(e) {}
 }
 
-async function sync() {
-  try {
-    const r = await fetch('https://twod-server-f4df.onrender.com/api/unified-live');
-    const d = await r.json();
-    const live = d?.live?.twod;
-    
-    if(live && live !== lastVal) {
-      lastVal = live;
-      const b = (Number(live[0]) + Number(live[1])) % 10;
-      freq[b]++;
-      updateUI(live, b);
+function renderGrid() {
+    const g = document.getElementById('grid'); g.innerHTML = '';
+    const max = Math.max(...Object.values(freq));
+    for(let i=0; i<=9; i++) {
+        const c = freq[i];
+        // Highlight logic only for "Highest current volume"
+        const isHigh = c > 0 && c === max;
+        g.innerHTML += `<div class="card">
+            <div class="label">BREAK ${i}</div>
+            <div class="count ${isHigh?'high-activity':''}">${c}</div>
+        </div>`;
     }
-  } catch(e) {}
 }
 
 setInterval(sync, 2000);
-updateUI('--', '-');
+renderGrid();
 </script>
-
 </body>
 </html>
