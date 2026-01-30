@@ -1,522 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔴 PONNAR SENTINEL LIVE | BREAK TRACKER</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --matrix-green: #00ff41; --cyber-red: #ff003c; --neon-blue: #00f3ff;
-            --hologram-purple: #9d00ff; --dark-space: #0a0a0f; --panel-gray: #1a1a2e;
-            --warning-gold: #ffb347; --hit-color: #00ff41; --miss-color: #ff003c;
-        }
-        * {margin:0; padding:0; box-sizing:border-box;}
-        body { background: var(--dark-space); font-family: 'Share Tech Mono', monospace; color: var(--matrix-green); overflow-x:hidden; min-height:100vh; }
-        .container { max-width: 1280px; margin:0 auto; padding:10px; display:grid; grid-template-columns: 2fr 1fr; gap:20px; }
-        
-        /* BREAK TRACKER PANEL */
-        .break-panel {
-            background: rgba(26,26,46,0.9); border:2px solid var(--hologram-purple);
-            border-radius:15px; padding:15px; margin-top:20px;
-        }
-        .break-stats { display: flex; justify-content: space-around; margin-bottom: 15px; }
-        .break-counter { text-align: center; }
-        .break-counter span { display: block; font-size: 1.5rem; font-family: 'Orbitron'; }
-        
-        .break-table-wrapper { 
-            height: 200px; 
-            overflow-y: auto; 
-            border: 1px solid #333; 
-            background: rgba(0,0,0,0.3);
-        }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th { 
-            background: var(--hologram-purple); 
-            color: white; 
-            padding: 8px; 
-            position: sticky; 
-            top: 0; 
-            z-index: 10;
-        }
-        td { padding: 8px; text-align: center; border-bottom: 1px solid #222; }
-        .hit { color: var(--hit-color); font-weight: bold; }
-        .miss { color: var(--miss-color); }
-        tr:nth-child(even) { background: rgba(255,255,255,0.05); }
-        tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🛡️ PONNNAR SENTINEL | BREAK INTELLIGENCE</title>
 
-        /* EXISTING STYLES */
-        .main-display { background: rgba(26,26,46,0.9); border-radius:15px; padding:20px; border:2px solid var(--neon-blue); text-align:center; }
-        .live-signal-label { font-family:'Orbitron', sans-serif; font-size:1rem; color: var(--neon-blue); text-transform: uppercase; }
-        .twod-display { font-family:'Orbitron', sans-serif; font-size:6rem; font-weight:900; color: var(--matrix-green); text-shadow:0 0 30px var(--matrix-green); margin:10px 0; }
-        .sidebar { display:flex; flex-direction:column; gap:15px; }
-        .stats-panel, .control-panel, .pat-display { background: rgba(26,26,46,0.9); border-radius:10px; padding:15px; border:2px solid var(--matrix-green); }
-        .stat-item { display:flex; justify-content:space-between; padding:5px 0; }
-        .stat-value {font-family:'Orbitron'; font-weight:700; color:white;}
-        .control-btn { width:100%; padding:10px; margin-bottom:10px; background:var(--matrix-green); color:black; font-family:'Orbitron'; font-weight:700; border:none; border-radius:5px; cursor:pointer; }
-        
-        /* New Data Retention Controls */
-        .data-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .data-btn {
-            flex: 1;
-            padding: 8px;
-            background: var(--panel-gray);
-            color: var(--neon-blue);
-            border: 1px solid var(--neon-blue);
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'Share Tech Mono';
-            font-size: 0.8rem;
-        }
-        .data-btn:hover {
-            background: var(--neon-blue);
-            color: var(--dark-space);
-        }
-        
-        /* Stats Summary */
-        .stats-summary {
-            margin-top: 15px;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            font-size: 0.85rem;
-        }
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-    </style>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#0a0a0f;
+  --panel:#16162a;
+  --green:#00ff41;
+  --red:#ff003c;
+  --blue:#00f3ff;
+  --purple:#9d00ff;
+  --gold:#ffb347;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--green);
+  font-family:'Share Tech Mono', monospace;
+}
+
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:15px;
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:15px;
+}
+
+.panel{
+  background:var(--panel);
+  border-radius:14px;
+  padding:15px;
+  border:2px solid var(--blue);
+}
+
+h3{
+  margin:0 0 10px;
+  font-family:'Orbitron';
+  color:var(--purple);
+}
+
+/* MAIN */
+.twod{
+  font-family:'Orbitron';
+  font-size:5rem;
+  text-align:center;
+  text-shadow:0 0 25px var(--green);
+}
+
+/* BREAK GRID */
+.break-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+}
+
+.break-box{
+  border:1px solid #333;
+  border-radius:8px;
+  padding:8px;
+  text-align:center;
+  background:rgba(0,0,0,.3);
+}
+
+.break-box .digit{
+  font-size:.9rem;
+  color:var(--gold);
+}
+
+.break-box .count{
+  font-size:1.4rem;
+  font-family:'Orbitron';
+}
+
+/* LOG TABLE */
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.85rem;
+}
+th,td{
+  padding:6px;
+  text-align:center;
+}
+th{
+  position:sticky;
+  top:0;
+  background:var(--purple);
+  color:white;
+}
+tr:nth-child(even){background:rgba(255,255,255,.04)}
+.hit{color:var(--green)}
+.miss{color:var(--red)}
+
+button{
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  border:none;
+  border-radius:6px;
+  font-family:'Orbitron';
+  font-weight:700;
+  cursor:pointer;
+  background:var(--green);
+  color:black;
+}
+button.danger{background:var(--red); color:white}
+</style>
 </head>
+
 <body>
 
 <div class="container">
-    <div class="main-display">
-        <div class="live-signal-label">LIVE SIGNAL</div>
-        <div id="main-twod" class="twod-display">--</div>
-        
-        <div class="break-panel">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="color:var(--hologram-purple); margin:0;">🛡️ SENTINEL BREAK LOGS (1, 5, 6, 7, 8)</h3>
-                <div style="font-size:0.8rem; color:var(--warning-gold);">
-                    📊 <span id="total-entries">0</span> records
-                </div>
-            </div>
-            
-            <div class="break-stats">
-                <div class="break-counter">TOTAL HITS <span id="hit-count" style="color:var(--hit-color)">0</span></div>
-                <div class="break-counter">TOTAL MISS <span id="miss-count" style="color:var(--miss-color)">0</span></div>
-                <div class="break-counter">HIT RATE <span id="hit-rate" style="color:var(--neon-blue)">0%</span></div>
-            </div>
-            
-            <!-- Data Control Buttons -->
-            <div class="data-controls">
-                <button class="data-btn" onclick="exportData()">💾 EXPORT DATA</button>
-                <button class="data-btn" onclick="loadFromStorage()">📂 LOAD SAVED</button>
-                <button class="data-btn" onclick="clearOldEntries()">🗑️ CLEAR OLD (>100)</button>
-            </div>
-            
-            <div class="break-table-wrapper">
-                <table>
-                    <thead>
-                        <tr><th>TIME</th><th>2D</th><th>BREAK</th><th>STATUS</th><th>ACCUMULATED</th></tr>
-                    </thead>
-                    <tbody id="break-log-body">
-                        <!-- Data will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Stats Summary -->
-            <div class="stats-summary" id="stats-summary">
-                <div class="stats-row">
-                    <span>Session Start:</span>
-                    <span id="session-start">--:--:--</span>
-                </div>
-                <div class="stats-row">
-                    <span>Current Streak:</span>
-                    <span id="current-streak">0</span>
-                </div>
-                <div class="stats-row">
-                    <span>Best Streak:</span>
-                    <span id="best-streak">0</span>
-                </div>
-                <div class="stats-row">
-                    <span>Break 6 Count:</span>
-                    <span id="break-6-count" style="color:var(--warning-gold)">0</span>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="sidebar">
-        <div class="stats-panel">
-            <h3>SYSTEM STATS</h3>
-            <div class="stat-item">SET <span id="stat-set" class="stat-value">--</span></div>
-            <div class="stat-item">VALUE <span id="stat-value" class="stat-value">--</span></div>
-            <div class="stat-item">CONSTANT <span class="stat-value">53.26</span></div>
-            <div class="stat-item" style="border-top:1px solid #333; margin-top:8px; padding-top:8px;">
-                LAST UPDATE <span id="last-update" class="stat-value" style="color:var(--neon-blue)">--:--</span>
-            </div>
-        </div>
-        
-        <div class="pat-display">
-            <div class="pat-label">PAT THEE</div>
-            <div id="pat-val" class="stat-value" style="font-size:2rem; color:var(--warning-gold)">--</div>
-            <div style="font-size:0.8rem; margin-top:5px;">
-                Next Predicted: <span id="next-predicted" style="color:var(--matrix-green)">--</span>
-            </div>
-        </div>
-        
-        <div class="control-panel">
-            <button class="control-btn" onclick="clearLogs()">🧹 CLEAR TODAY</button>
-            <button class="control-btn" onclick="saveToStorage()">💾 SAVE SESSION</button>
-            <button class="control-btn" onclick="toggleAutoRefresh()" id="auto-refresh-btn">⏸️ PAUSE AUTO</button>
-            <button class="control-btn" onclick="location.reload()">🔄 REBOOT</button>
-        </div>
+  <!-- LEFT -->
+  <div class="panel">
+    <h3>LIVE 2D</h3>
+    <div id="twod" class="twod">--</div>
+
+    <h3 style="margin-top:15px">BREAK DISTRIBUTION (0–9)</h3>
+    <div id="breakGrid" class="break-grid"></div>
+
+    <h3 style="margin-top:15px">BREAK LOG</h3>
+    <div style="max-height:220px; overflow:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>TIME</th>
+            <th>2D</th>
+            <th>BREAK</th>
+            <th>RESULT</th>
+          </tr>
+        </thead>
+        <tbody id="logBody"></tbody>
+      </table>
     </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel">
+    <h3>STATS</h3>
+    <div>HITS: <b id="hits">0</b></div>
+    <div>MISSES: <b id="misses">0</b></div>
+    <div>HIT RATE: <b id="rate">0%</b></div>
+
+    <button onclick="clearSession()" class="danger">CLEAR SESSION</button>
+  </div>
+
 </div>
 
 <script>
-// ====================
-// ENHANCED DATA STORAGE
-// ====================
+/* ============================
+   SENTINEL CORE STATE
+============================ */
 
-const SUPABASE_URL = 'https://rxwlazpznslcaubdobxr.supabase.co'; 
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Use your safe key
-const sentinel = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const TARGET_BREAKS = [1,5,6,7,8];
 
-// Enhanced data storage
-let breakLogs = []; // Main data array
+let logs = [];
 let hits = 0;
 let misses = 0;
-let lastResult = "";
-const targetBreaks = [1, 5, 6, 7, 8];
-let autoRefresh = true;
-let intervalId = null;
-let sessionStartTime = new Date();
-let currentStreak = 0;
-let bestStreak = 0;
+let last2D = null;
 
-// Initialize from localStorage
-function loadSavedData() {
-    const saved = localStorage.getItem('sentinel_break_logs');
-    if (saved) {
-        try {
-            const data = JSON.parse(saved);
-            breakLogs = data.logs || [];
-            hits = data.hits || 0;
-            misses = data.misses || 0;
-            bestStreak = data.bestStreak || 0;
-            
-            console.log(`Loaded ${breakLogs.length} saved entries`);
-            updateAllDisplays();
-        } catch (e) {
-            console.error("Error loading saved data:", e);
-        }
-    }
-}
-
-// Save data to localStorage
-function saveToStorage() {
-    const data = {
-        logs: breakLogs,
-        hits: hits,
-        misses: misses,
-        bestStreak: bestStreak,
-        savedAt: new Date().toISOString()
-    };
-    
-    localStorage.setItem('sentinel_break_logs', JSON.stringify(data));
-    
-    // Visual feedback
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = "✅ SAVED!";
-    btn.style.background = "var(--hologram-purple)";
-    setTimeout(() => {
-        btn.textContent = originalText;
-        btn.style.background = "var(--matrix-green)";
-    }, 1000);
-}
-
-// Export data as JSON file
-function exportData() {
-    const dataStr = JSON.stringify({
-        logs: breakLogs,
-        stats: {
-            total: breakLogs.length,
-            hits: hits,
-            misses: misses,
-            hitRate: ((hits / (hits + misses)) * 100).toFixed(1) + '%',
-            sessionStart: sessionStartTime.toISOString(),
-            exportedAt: new Date().toISOString()
-        }
-    }, null, 2);
-    
-    const dataBlob = new Blob([dataStr], {type: 'application/json'});
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `sentinel_logs_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// Load data from storage
-function loadFromStorage() {
-    loadSavedData();
-    alert(`Loaded ${breakLogs.length} entries from storage`);
-}
-
-// Clear only old entries (keep last 100)
-function clearOldEntries() {
-    if (breakLogs.length > 100) {
-        breakLogs = breakLogs.slice(0, 100);
-        recalculateStats();
-        updateAllDisplays();
-        alert(`Kept last 100 entries, removed older ones`);
-    } else {
-        alert(`Only ${breakLogs.length} entries, nothing to clear`);
-    }
-}
-
-// Clear today's logs (reset counters but keep data)
-function clearLogs() {
-    if (confirm("Clear today's logs but keep saved data?")) {
-        hits = 0;
-        misses = 0;
-        currentStreak = 0;
-        updateCounters();
-    }
-}
-
-// Toggle auto-refresh
-function toggleAutoRefresh() {
-    autoRefresh = !autoRefresh;
-    const btn = document.getElementById('auto-refresh-btn');
-    
-    if (autoRefresh) {
-        btn.textContent = "⏸️ PAUSE AUTO";
-        btn.style.background = "var(--matrix-green)";
-        startAutoRefresh();
-    } else {
-        btn.textContent = "▶️ RESUME AUTO";
-        btn.style.background = "var(--cyber-red)";
-        if (intervalId) {
-            clearInterval(intervalId);
-            intervalId = null;
-        }
-    }
-}
-
-// Start auto-refresh
-function startAutoRefresh() {
-    if (intervalId) clearInterval(intervalId);
-    intervalId = setInterval(updateMarketData, 2000);
-}
-
-// ====================
-// ENHANCED DATA FUNCTIONS
-// ====================
-
-async function updateMarketData(){
-    if (!autoRefresh) return;
-    
-    try {
-        const res = await fetch('https://twod-server-f4df.onrender.com/api/unified-live');
-        const data = await res.json();
-        const live = data.live;
-        
-        if(live && live.twod !== lastResult) {
-            lastResult = live.twod;
-            
-            // Update main display
-            document.getElementById('main-twod').textContent = live.twod;
-            document.getElementById('stat-set').textContent = live.set;
-            document.getElementById('stat-value').textContent = live.value;
-            document.getElementById('last-update').textContent = 
-                new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-            // Calculate Break
-            const digits = live.twod.split('').map(Number);
-            const sum = digits[0] + (digits[1] || 0);
-            const breakVal = sum % 10;
-            
-            // Check Hit/Miss
-            const isHit = targetBreaks.includes(breakVal);
-            
-            // Update streak
-            if (isHit) {
-                currentStreak++;
-                hits++;
-                if (currentStreak > bestStreak) {
-                    bestStreak = currentStreak;
-                }
-            } else {
-                currentStreak = 0;
-                misses++;
-            }
-            
-            // Create log entry
-            const logEntry = {
-                time: live.time.split(' ')[1],
-                twod: live.twod,
-                break: breakVal,
-                isHit: isHit,
-                timestamp: new Date().toISOString(),
-                accumulated: hits + misses
-            };
-            
-            // Add to beginning of array (newest first)
-            breakLogs.unshift(logEntry);
-            
-            // Update all displays
-            updateLogTable();
-            updateCounters();
-            updateStatsSummary();
-            
-            // Auto-save every 10 entries
-            if (breakLogs.length % 10 === 0) {
-                saveToStorage();
-            }
-            
-            // Update prediction
-            updatePrediction();
-        }
-    } catch(err) { 
-        console.error("Sync Error:", err); 
-        // Fallback: Show error but keep running
-        document.getElementById('main-twod').textContent = "ERR";
-    }
-}
-
-// Update the entire table
-function updateLogTable() {
-    const tbody = document.getElementById('break-log-body');
-    tbody.innerHTML = '';
-    
-    // Show latest 50 entries
-    const displayLogs = breakLogs.slice(0, 50);
-    
-    displayLogs.forEach(entry => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${entry.time}</td>
-            <td>${entry.twod}</td>
-            <td>${entry.break}</td>
-            <td class="${entry.isHit ? 'hit' : 'miss'}">
-                ${entry.isHit ? '🎯 HIT' : '❌ MISS'}
-            </td>
-            <td>${entry.accumulated}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-// Update counters and statistics
-function updateCounters() {
-    document.getElementById('hit-count').textContent = hits;
-    document.getElementById('miss-count').textContent = misses;
-    
-    const total = hits + misses;
-    const hitRate = total > 0 ? ((hits / total) * 100).toFixed(1) : 0;
-    document.getElementById('hit-rate').textContent = `${hitRate}%`;
-    document.getElementById('total-entries').textContent = breakLogs.length;
-}
-
-// Update stats summary
-function updateStatsSummary() {
-    document.getElementById('session-start').textContent = 
-        sessionStartTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    document.getElementById('current-streak').textContent = currentStreak;
-    document.getElementById('best-streak').textContent = bestStreak;
-    
-    // Count Break 6 occurrences
-    const break6Count = breakLogs.filter(entry => entry.break === 6).length;
-    document.getElementById('break-6-count').textContent = break6Count;
-}
-
-// Recalculate stats from logs (when loading saved data)
-function recalculateStats() {
-    hits = breakLogs.filter(entry => entry.isHit).length;
-    misses = breakLogs.filter(entry => !entry.isHit).length;
-    
-    // Calculate best streak
-    let current = 0;
-    bestStreak = 0;
-    breakLogs.forEach(entry => {
-        if (entry.isHit) {
-            current++;
-            if (current > bestStreak) bestStreak = current;
-        } else {
-            current = 0;
-        }
-    });
-}
-
-// Update all displays
-function updateAllDisplays() {
-    updateLogTable();
-    updateCounters();
-    updateStatsSummary();
-    updatePrediction();
-}
-
-// Update prediction based on patterns
-function updatePrediction() {
-    // Simple prediction: find least frequent target break
-    const breakCounts = {};
-    targetBreaks.forEach(b => breakCounts[b] = 0);
-    
-    // Count last 50 occurrences
-    const recentLogs = breakLogs.slice(0, 50);
-    recentLogs.forEach(entry => {
-        if (breakCounts[entry.break] !== undefined) {
-            breakCounts[entry.break]++;
-        }
-    });
-    
-    // Find least frequent (statistically due)
-    let predicted = targetBreaks[0];
-    let minCount = breakCounts[predicted];
-    
-    targetBreaks.forEach(b => {
-        if (breakCounts[b] < minCount) {
-            minCount = breakCounts[b];
-            predicted = b;
-        }
-    });
-    
-    document.getElementById('next-predicted').textContent = predicted;
-    
-    // Update PAT THEE with current break analysis
-    const currentBreak = breakLogs.length > 0 ? breakLogs[0].break : '--';
-    document.getElementById('pat-val').textContent = currentBreak;
-}
-
-// ====================
-// INITIALIZATION
-// ====================
-
-// Initialize on load
-window.onload = function() {
-    loadSavedData();
-    startAutoRefresh();
-    
-    // Set session start time
-    sessionStartTime = new Date();
-    updateStatsSummary();
-    
-    // Initial update
-    updateMarketData();
+// Single source of truth
+let breakFreq = {
+  0:0,1:0,2:0,3:0,4:0,
+  5:0,6:0,7:0,8:0,9:0
 };
+
+/* ============================
+   UI RENDERING
+============================ */
+
+function renderBreakGrid(){
+  const grid = document.getElementById('breakGrid');
+  grid.innerHTML = '';
+
+  for(let i=0;i<=9;i++){
+    const box = document.createElement('div');
+    box.className = 'break-box';
+    box.style.color = TARGET_BREAKS.includes(i) ? 'var(--green)' : 'var(--gold)';
+    box.innerHTML = `
+      <div class="digit">${i}</div>
+      <div class="count">${breakFreq[i]}</div>
+    `;
+    grid.appendChild(box);
+  }
+}
+
+function renderStats(){
+  document.getElementById('hits').textContent = hits;
+  document.getElementById('misses').textContent = misses;
+  const total = hits + misses;
+  document.getElementById('rate').textContent =
+    total ? ((hits/total)*100).toFixed(1)+'%' : '0%';
+}
+
+function renderLogs(){
+  const body = document.getElementById('logBody');
+  body.innerHTML = '';
+  logs.slice(0,40).forEach(l=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${l.time}</td>
+      <td>${l.twod}</td>
+      <td>${l.break}</td>
+      <td class="${l.hit?'hit':'miss'}">
+        ${l.hit?'HIT':'MISS'}
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+/* ============================
+   CORE LOGIC
+============================ */
+
+function process2D(twod){
+  if(twod === last2D) return;
+  last2D = twod;
+
+  document.getElementById('twod').textContent = twod;
+
+  const a = Number(twod[0]);
+  const b = Number(twod[1]);
+  const breakVal = (a + b) % 10;
+
+  breakFreq[breakVal]++;
+
+  const isHit = TARGET_BREAKS.includes(breakVal);
+  isHit ? hits++ : misses++;
+
+  logs.unshift({
+    time: new Date().toLocaleTimeString(),
+    twod,
+    break: breakVal,
+    hit: isHit
+  });
+
+  renderBreakGrid();
+  renderStats();
+  renderLogs();
+}
+
+/* ============================
+   FETCH LOOP
+============================ */
+
+async function tick(){
+  try{
+    const r = await fetch('https://twod-server-f4df.onrender.com/api/unified-live');
+    const d = await r.json();
+    if(d?.live?.twod){
+      process2D(d.live.twod);
+    }
+  }catch(e){
+    console.error(e);
+  }
+}
+
+setInterval(tick, 2000);
+
+/* ============================
+   CONTROLS
+============================ */
+
+function clearSession(){
+  if(!confirm('Clear all session data?')) return;
+  logs=[];
+  hits=misses=0;
+  breakFreq={0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
+  renderBreakGrid();
+  renderStats();
+  renderLogs();
+}
+
+renderBreakGrid();
 </script>
+
 </body>
 </html>
