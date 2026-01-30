@@ -3,287 +3,183 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>🛡️ PONNNAR SENTINEL | BREAK INTELLIGENCE</title>
+<title>🛡️ SENTINEL | STEALTH NEUTRALIZED</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --bg:#0a0a0f;
-  --panel:#16162a;
-  --green:#00ff41;
-  --red:#ff003c;
-  --blue:#00f3ff;
-  --purple:#9d00ff;
-  --gold:#ffb347;
+  --bg:#050508;
+  --panel:#0d0d1a;
+  --neon-green:#00ff9d;
+  --neon-blue:#00d9ff;
+  --neon-purple:#bc00ff;
+  --neon-gold:#ffcc00;
+  --dead-gray:#2a2a35;
 }
 
-*{box-sizing:border-box}
 body{
   margin:0;
   background:var(--bg);
-  color:var(--green);
+  color:var(--neon-green);
   font-family:'Share Tech Mono', monospace;
+  overflow: hidden;
 }
 
-.container{
-  max-width:1200px;
-  margin:auto;
-  padding:15px;
-  display:grid;
-  grid-template-columns:2fr 1fr;
-  gap:15px;
+.main-view{
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 10px;
+  gap: 10px;
 }
 
-.panel{
-  background:var(--panel);
-  border-radius:14px;
-  padding:15px;
-  border:2px solid var(--blue);
+/* TOP HEADER: 2D FOCUS */
+.live-header{
+  background: var(--panel);
+  border: 1px solid var(--neon-blue);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.2);
 }
 
-h3{
-  margin:0 0 10px;
-  font-family:'Orbitron';
-  color:var(--purple);
+.twod-display{
+  font-family: 'Orbitron';
+  font-size: 6rem;
+  letter-spacing: -2px;
+  color: #fff;
+  text-shadow: 0 0 30px var(--neon-green);
 }
 
-/* MAIN */
-.twod{
-  font-family:'Orbitron';
-  font-size:5rem;
-  text-align:center;
-  text-shadow:0 0 25px var(--green);
+/* BREAK DISTRIBUTION: VIBRANT & CLEAN */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  flex-grow: 1;
 }
 
-/* BREAK GRID */
-.break-grid{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:8px;
+.break-card {
+  background: var(--panel);
+  border: 1px solid var(--dead-gray);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: 0.3s;
 }
 
-.break-box{
-  border:1px solid #333;
-  border-radius:8px;
-  padding:8px;
-  text-align:center;
-  background:rgba(0,0,0,.3);
+/* ACTIVE TARGET HIGHLIGHT */
+.target-active {
+  border-color: var(--neon-purple);
+  background: rgba(157, 0, 255, 0.05);
+  box-shadow: inset 0 0 10px rgba(157, 0, 255, 0.2);
 }
 
-.break-box .digit{
-  font-size:.9rem;
-  color:var(--gold);
+.break-card .label {
+  font-size: 1rem;
+  color: var(--neon-blue);
+  opacity: 0.7;
 }
 
-.break-box .count{
-  font-size:1.4rem;
-  font-family:'Orbitron';
+.break-card .val {
+  font-family: 'Orbitron';
+  font-size: 2.5rem;
+  font-weight: 800;
 }
 
-/* LOG TABLE */
-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:.85rem;
-}
-th,td{
-  padding:6px;
-  text-align:center;
-}
-th{
-  position:sticky;
-  top:0;
-  background:var(--purple);
-  color:white;
-}
-tr:nth-child(even){background:rgba(255,255,255,.04)}
-.hit{color:var(--green)}
-.miss{color:var(--red)}
+/* DYNAMIC COLORS BASED ON COUNT */
+.high-freq { color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); }
+.mid-freq { color: var(--neon-green); }
+.low-freq { color: var(--dead-gray); }
 
-button{
-  width:100%;
-  padding:10px;
-  margin-top:8px;
-  border:none;
-  border-radius:6px;
-  font-family:'Orbitron';
-  font-weight:700;
-  cursor:pointer;
-  background:var(--green);
-  color:black;
+/* MINI LOG: NO HITS/MISSES, JUST DATA */
+.stealth-log {
+  background: #000;
+  border-radius: 8px;
+  height: 120px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  padding: 10px;
+  border: 1px solid var(--dead-gray);
 }
-button.danger{background:var(--red); color:white}
+
+.log-entry {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #111;
+  padding: 2px 0;
+}
 </style>
 </head>
-
 <body>
 
-<div class="container">
+<div class="main-view">
+  <div class="live-header">
+    <div class="twod-display" id="main2D">--</div>
+    <div style="font-size: 0.8rem; color: var(--neon-purple);">PROJECT: MONDAY KICKOFF | SENTINEL v5.2</div>
+  </div>
 
-  <!-- LEFT -->
-  <div class="panel">
-    <h3>LIVE 2D</h3>
-    <div id="twod" class="twod">--</div>
-
-    <h3 style="margin-top:15px">BREAK DISTRIBUTION (0–9)</h3>
-    <div id="breakGrid" class="break-grid"></div>
-
-    <h3 style="margin-top:15px">BREAK LOG</h3>
-    <div style="max-height:220px; overflow:auto">
-      <table>
-        <thead>
-          <tr>
-            <th>TIME</th>
-            <th>2D</th>
-            <th>BREAK</th>
-            <th>RESULT</th>
-          </tr>
-        </thead>
-        <tbody id="logBody"></tbody>
-      </table>
+  <div class="grid-container" id="grid">
     </div>
+
+  <div class="stealth-log" id="log">
+    <div>SYSTEM READY... AWAITING FEED</div>
   </div>
-
-  <!-- RIGHT -->
-  <div class="panel">
-    <h3>STATS</h3>
-    <div>HITS: <b id="hits">0</b></div>
-    <div>MISSES: <b id="misses">0</b></div>
-    <div>HIT RATE: <b id="rate">0%</b></div>
-
-    <button onclick="clearSession()" class="danger">CLEAR SESSION</button>
-  </div>
-
 </div>
 
 <script>
-/* ============================
-   SENTINEL CORE STATE
-============================ */
+const TARGETS = [1,5,6,7,8];
+let freq = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
+let lastVal = null;
 
-const TARGET_BREAKS = [1,5,6,7,8];
-
-let logs = [];
-let hits = 0;
-let misses = 0;
-let last2D = null;
-
-// Single source of truth
-let breakFreq = {
-  0:0,1:0,2:0,3:0,4:0,
-  5:0,6:0,7:0,8:0,9:0
-};
-
-/* ============================
-   UI RENDERING
-============================ */
-
-function renderBreakGrid(){
-  const grid = document.getElementById('breakGrid');
+function updateUI(twod, brk) {
+  document.getElementById('main2D').innerText = twod;
+  
+  // Update Grid
+  const grid = document.getElementById('grid');
   grid.innerHTML = '';
-
-  for(let i=0;i<=9;i++){
-    const box = document.createElement('div');
-    box.className = 'break-box';
-    box.style.color = TARGET_BREAKS.includes(i) ? 'var(--green)' : 'var(--gold)';
-    box.innerHTML = `
-      <div class="digit">${i}</div>
-      <div class="count">${breakFreq[i]}</div>
+  
+  for(let i=0; i<=9; i++) {
+    const isTarget = TARGETS.includes(i);
+    const count = freq[i];
+    let colorClass = count > 15 ? 'high-freq' : (count > 0 ? 'mid-freq' : 'low-freq');
+    
+    grid.innerHTML += `
+      <div class="break-card ${isTarget ? 'target-active' : ''}">
+        <div class="label">B-${i}</div>
+        <div class="val ${colorClass}">${count}</div>
+      </div>
     `;
-    grid.appendChild(box);
   }
+
+  // Update Log (Stealth Mode: No "Hit/Miss" text)
+  const log = document.getElementById('log');
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span>${new Date().toLocaleTimeString()}</span> <span>2D: ${twod}</span> <span>BRK: ${brk}</span>`;
+  log.prepend(entry);
 }
 
-function renderStats(){
-  document.getElementById('hits').textContent = hits;
-  document.getElementById('misses').textContent = misses;
-  const total = hits + misses;
-  document.getElementById('rate').textContent =
-    total ? ((hits/total)*100).toFixed(1)+'%' : '0%';
-}
-
-function renderLogs(){
-  const body = document.getElementById('logBody');
-  body.innerHTML = '';
-  logs.slice(0,40).forEach(l=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${l.time}</td>
-      <td>${l.twod}</td>
-      <td>${l.break}</td>
-      <td class="${l.hit?'hit':'miss'}">
-        ${l.hit?'HIT':'MISS'}
-      </td>
-    `;
-    body.appendChild(tr);
-  });
-}
-
-/* ============================
-   CORE LOGIC
-============================ */
-
-function process2D(twod){
-  if(twod === last2D) return;
-  last2D = twod;
-
-  document.getElementById('twod').textContent = twod;
-
-  const a = Number(twod[0]);
-  const b = Number(twod[1]);
-  const breakVal = (a + b) % 10;
-
-  breakFreq[breakVal]++;
-
-  const isHit = TARGET_BREAKS.includes(breakVal);
-  isHit ? hits++ : misses++;
-
-  logs.unshift({
-    time: new Date().toLocaleTimeString(),
-    twod,
-    break: breakVal,
-    hit: isHit
-  });
-
-  renderBreakGrid();
-  renderStats();
-  renderLogs();
-}
-
-/* ============================
-   FETCH LOOP
-============================ */
-
-async function tick(){
-  try{
+async function sync() {
+  try {
     const r = await fetch('https://twod-server-f4df.onrender.com/api/unified-live');
     const d = await r.json();
-    if(d?.live?.twod){
-      process2D(d.live.twod);
+    const live = d?.live?.twod;
+    
+    if(live && live !== lastVal) {
+      lastVal = live;
+      const b = (Number(live[0]) + Number(live[1])) % 10;
+      freq[b]++;
+      updateUI(live, b);
     }
-  }catch(e){
-    console.error(e);
-  }
+  } catch(e) {}
 }
 
-setInterval(tick, 2000);
-
-/* ============================
-   CONTROLS
-============================ */
-
-function clearSession(){
-  if(!confirm('Clear all session data?')) return;
-  logs=[];
-  hits=misses=0;
-  breakFreq={0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
-  renderBreakGrid();
-  renderStats();
-  renderLogs();
-}
-
-renderBreakGrid();
+setInterval(sync, 2000);
+updateUI('--', '-');
 </script>
 
 </body>
