@@ -1,6 +1,5 @@
 /**
- * 🛡️ SENTINEL v6.4 — MARKET MEMORY ENABLED
- * Break Totals | 2D Intelligence | Authoritative Broadcast
+ * 🛡️ SENTINEL v6.5 — HARDENED AUTHORITATIVE CORE
  */
 
 require('dotenv').config();
@@ -23,22 +22,29 @@ const supabase = createClient(
 );
 
 /* ===============================
-   CORE LOGIC — SENTINEL BRAIN
+   CORE BRAIN
 ================================ */
 async function calculatePredictions(latestTwod) {
   try {
     /* 1️⃣ LOG RAW EVENT */
     await supabase.from('logs').insert([{ twod: latestTwod }]);
 
-    /* 2️⃣ BREAK DIGIT (AUTHORITATIVE) */
+    /* 2️⃣ BREAK DIGIT */
     const breakDigit =
       (Number(latestTwod[0]) + Number(latestTwod[1])) % 10;
 
-    /* 3️⃣ UPDATE MARKET MEMORY (RPC — ATOMIC) */
-    await supabase.rpc('increment_break', { b: breakDigit });
-    await supabase.rpc('increment_twod', { t: latestTwod });
+    /* 3️⃣ ATOMIC MARKET MEMORY */
+    const { error: bErr } = await supabase
+      .rpc('increment_break', { break_digit: breakDigit });
 
-    /* 4️⃣ DNA KEY CALCULATION (42.54 SEED) */
+    if (bErr) throw new Error(`increment_break → ${bErr.message}`);
+
+    const { error: tErr } = await supabase
+      .rpc('increment_twod', { twod_value: latestTwod });
+
+    if (tErr) throw new Error(`increment_twod → ${tErr.message}`);
+
+    /* 4️⃣ DNA KEYS */
     const front = 42;
     const back = 54;
 
@@ -51,7 +57,7 @@ async function calculatePredictions(latestTwod) {
       Number(diff[0]) - Number(diff[1] || 0)
     );
 
-    /* 5️⃣ TOP 10 MOST FREQUENT 2D */
+    /* 5️⃣ TOP 10 */
     const { data: top10 } = await supabase
       .from('twod_stats')
       .select('twod, total_count')
@@ -62,95 +68,77 @@ async function calculatePredictions(latestTwod) {
       ? top10.map(r => r.twod).join(', ')
       : '—';
 
-    /* 6️⃣ CONSTRUCT BROADCAST MESSAGE */
-    const burmeseAlert =
-      "🐘 Elephant Gravity: Break 1 (Vacuum) အား အထူးဂရုပြုပါ။ DNA Keys မျှခြေပြန်ရှာနေသည်။";
-
-    const signalMessage = `
+    /* 6️⃣ BROADCAST */
+    const signal = `
 📊 MAGNET: ${magnet} | OFFSET: ${offset}
 🧮 CURRENT BREAK: ${breakDigit}
 
 🏆 TOP 10 MOST FREQUENT 2D:
 ${top10List}
 
-${burmeseAlert}
+🐘 Elephant Gravity: Break 1 (Vacuum)
+DNA balance recalibrating…
 `.trim();
 
-    /* 7️⃣ UPSERT BROADCAST (AUTHORITATIVE) */
-    const { error } = await supabase
+    await supabase
       .from('broadcast')
       .upsert({
         id: 'live_feed',
-        signal_message: signalMessage,
+        signal_message: signal,
         updated_at: new Date()
       });
 
-    if (error) {
-      console.error("❌ BROADCAST WRITE ERROR:", error.message);
-    } else {
-      console.log(
-        `✅ SIGNAL SYNCED | 2D=${latestTwod} | BREAK=${breakDigit}`
-      );
-    }
-
-    return signalMessage;
+    console.log(`✅ SENTINEL OK | 2D=${latestTwod}`);
+    return signal;
 
   } catch (err) {
-    console.error("🔥 SENTINEL CORE FAILURE:", err.message);
-    return "⚠️ SENTINEL DEGRADED — MARKET MEMORY ERROR";
+    console.error('🔥 SENTINEL FAILURE:', err.message);
+    return '⚠️ SENTINEL DEGRADED — CHECK CORE LOGS';
   }
 }
 
 /* ===============================
    ROUTES
 ================================ */
-
-/**
- * 🔴 LIVE BRIDGE
- * Fetch → Calculate → Persist → Broadcast → Respond
- */
 app.get('/api/unified-live', async (_, res) => {
   try {
     const { data } = await axios.get(
-      'https://api.thaistock2d.com/live'
+      'https://api.thaistock2d.com/live',
+      { timeout: 5000 }
     );
 
     const live = data.live;
     const broadcast = await calculatePredictions(live.twod);
 
-    res.json({
-      live,
-      broadcast
-    });
+    res.json({ live, broadcast });
 
   } catch (err) {
-    console.error("🌉 BRIDGE ERROR:", err.message);
-    res.status(500).json({
-      error: "BRIDGE CONNECTION LOST"
-    });
+    console.error('🌉 BRIDGE DOWN:', err.message);
+    res.status(500).json({ error: 'MARKET FEED LOST' });
   }
 });
 
-/**
- * 📡 BROADCAST FALLBACK (OBS SAFE)
- */
+/* 🔍 AUTHORITATIVE BREAK GRID */
+app.get('/api/break-stats', async (_, res) => {
+  const { data } = await supabase
+    .from('break_stats')
+    .select('*')
+    .order('break_digit');
+
+  res.json(data || []);
+});
+
+/* 📡 BROADCAST SAFE */
 app.get('/api/get-broadcast', async (_, res) => {
-  try {
-    const { data } = await supabase
-      .from('broadcast')
-      .select('signal_message')
-      .eq('id', 'live_feed')
-      .single();
+  const { data } = await supabase
+    .from('broadcast')
+    .select('signal_message')
+    .eq('id', 'live_feed')
+    .single();
 
-    res.json(data || {
-      signal_message: "📡 SYNCHRONIZING WITH SENTINEL VAULT..."
-    });
-
-  } catch {
-    res.json({
-      signal_message: "📡 SYNCHRONIZING WITH SENTINEL VAULT..."
-    });
-  }
+  res.json(data || {
+    signal_message: '📡 SENTINEL STANDBY'
+  });
 });
 
 /* ===============================
@@ -163,9 +151,9 @@ app.get('/', (_, res) => {
 });
 
 /* ===============================
-   SERVER BOOT
+   BOOT
 ================================ */
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`🛡️ SENTINEL v6.4 ACTIVE → PORT ${PORT}`);
-});
+app.listen(PORT, () =>
+  console.log(`🛡️ SENTINEL v6.5 LIVE → ${PORT}`)
+);

@@ -44,43 +44,44 @@ body{ margin:0; background:var(--bg); color:var(--neon-blue); font-family:'Share
 </div>
 
 <script>
-let freq = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
 let lastVal = null;
 
 async function sync() {
-    try {
-        const rLive = await fetch('/api/unified-live');
-        const dLive = await rLive.json();
-        const live = dLive.live.twod;
-        if(live && live !== lastVal) {
-            lastVal = live;
-            freq[(Number(live[0])+Number(live[1]))%10]++;
-            document.getElementById('twod').innerText = live;
-            renderGrid();
-        }
+  try {
+    const liveR = await fetch('/api/unified-live');
+    const liveD = await liveR.json();
+    document.getElementById('twod').innerText = liveD.live.twod;
 
-        const rBc = await fetch('/api/get-broadcast');
-        const dBc = await rBc.json();
-        if(dBc?.signal_message) document.getElementById('broadcast').innerText = dBc.signal_message;
-    } catch(e) {}
+    const bcR = await fetch('/api/get-broadcast');
+    const bcD = await bcR.json();
+    document.getElementById('broadcast').innerText = bcD.signal_message;
+
+    const statsR = await fetch('/api/break-stats');
+    const stats = await statsR.json();
+    renderGrid(stats);
+
+  } catch (e) {}
 }
 
-function renderGrid() {
-    const g = document.getElementById('grid'); g.innerHTML = '';
-    const max = Math.max(...Object.values(freq));
-    for(let i=0; i<=9; i++) {
-        const c = freq[i];
-        // Highlight logic only for "Highest current volume"
-        const isHigh = c > 0 && c === max;
-        g.innerHTML += `<div class="card">
-            <div class="label">BREAK ${i}</div>
-            <div class="count ${isHigh?'high-activity':''}">${c}</div>
-        </div>`;
-    }
+function renderGrid(stats) {
+  const g = document.getElementById('grid');
+  g.innerHTML = '';
+  const max = Math.max(...stats.map(s => s.total_count));
+
+  stats.forEach(s => {
+    const isHigh = s.total_count === max && max > 0;
+    g.innerHTML += `
+      <div class="card">
+        <div class="label">BREAK ${s.break_digit}</div>
+        <div class="count ${isHigh?'high-activity':''}">
+          ${s.total_count}
+        </div>
+      </div>`;
+  });
 }
 
 setInterval(sync, 2000);
-renderGrid();
+sync();
 </script>
 </body>
 </html>
