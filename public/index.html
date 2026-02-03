@@ -1,78 +1,117 @@
 <!DOCTYPE html>
-<html lang="my"> <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>🛡️ SENTINEL v6.5.3 | COMMAND CORE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <style>
-        :root { --bg: #030305; --neon-blue: #00d9ff; --neon-green: #00ff9d; --panel: #0d0d1a; --danger: #ff4444; }
-        body { margin: 0; background: var(--bg); color: var(--neon-blue); font-family: 'Share Tech Mono', monospace; overflow-x: hidden; }
-        .container { display: flex; flex-direction: column; height: 100vh; padding: 20px; gap: 15px; }
-        
-        .broadcast-panel {
-            background: var(--panel); border: 2px solid var(--neon-blue); padding: 20px; border-radius: 4px;
-            color: #fff; font-size: 1.1rem; min-height: 120px;
-            white-space: pre-wrap; /* 🐘 IMPORTANT FOR NEW LINES */
-            box-shadow: 0 0 15px rgba(0, 217, 255, 0.2);
-        }
+<html lang="my">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🛡️ SENTINEL v6.5.4 | COMMAND CORE</title>
 
-        .market-hub { display: flex; justify-content: space-around; align-items: center; border: 1px dashed var(--neon-blue); padding: 15px; }
-        .twod-main { font-family: 'Orbitron'; font-size: 8rem; color: #fff; text-shadow: 0 0 20px var(--neon-blue); }
-        
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; flex-grow: 1; }
-        .card { background: #0a0a14; border: 1px solid rgba(0, 217, 255, 0.2); border-radius: 4px; display: flex; flex-direction: column; align-items: center; padding: 10px; }
-        .card.active { border-color: var(--neon-green); background: rgba(0, 255, 157, 0.1); }
-        .card .count { font-family: 'Orbitron'; font-size: 2.5rem; color: var(--neon-green); }
-    </style>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:#030305; --neon-blue:#00d9ff; --neon-green:#00ff9d;
+      --panel:#0d0d1a; --danger:#ff4444;
+    }
+    body {
+      margin:0; background:var(--bg); color:var(--neon-blue);
+      font-family:'Share Tech Mono', monospace;
+    }
+    .container {
+      display:flex; flex-direction:column; height:100vh;
+      padding:20px; gap:15px;
+    }
+    .broadcast-panel {
+      background:var(--panel);
+      border:2px solid var(--neon-blue);
+      padding:20px;
+      min-height:120px;
+      white-space:pre-wrap;
+      color:#fff;
+      box-shadow:0 0 15px rgba(0,217,255,.25);
+    }
+    .market-hub {
+      display:flex; justify-content:space-between;
+      align-items:center;
+      border:1px dashed var(--neon-blue);
+      padding:15px;
+    }
+    .twod-main {
+      font-family:'Orbitron';
+      font-size:8rem;
+      color:#fff;
+      text-shadow:0 0 25px var(--neon-blue);
+    }
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:10px;
+      flex-grow:1;
+    }
+    .card {
+      background:#0a0a14;
+      border:1px solid rgba(0,217,255,.25);
+      padding:10px;
+      text-align:center;
+    }
+    .card.active {
+      border-color:var(--neon-green);
+      background:rgba(0,255,157,.1);
+    }
+    .count {
+      font-family:'Orbitron';
+      font-size:2.5rem;
+      color:var(--neon-green);
+    }
+  </style>
 </head>
-<body>
 
+<body>
 <div class="container">
-    <div class="broadcast-panel" id="broadcast">INITIALIZING v6.5.3...</div>
-    <div class="market-hub">
-        <div class="twod-main" id="twod">--</div>
-        <div class="status-block">
-            <div style="background:var(--danger);color:#000;padding:5px;font-weight:bold;">LIVE FEED</div>
-            <div id="sync-timer" style="font-size:0.8rem; margin-top:5px;">SYNC: WAITING...</div>
-        </div>
+  <div class="broadcast-panel" id="broadcast">📡 INITIALIZING...</div>
+
+  <div class="market-hub">
+    <div class="twod-main" id="twod">--</div>
+    <div>
+      <div style="background:var(--danger);color:#000;padding:5px;font-weight:bold;">LIVE FEED</div>
+      <div id="sync" style="font-size:.8rem;margin-top:5px;">SYNC: WAITING</div>
     </div>
-    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
 </div>
 
 <script>
 async function sync() {
-    try {
-        // Fetch everything in one go or handle separately
-        const res = await fetch('/api/unified-live');
-        const data = await res.json();
-        
-        document.getElementById('twod').innerText = data.live.twod;
-        document.getElementById('broadcast').innerText = data.broadcast;
-        document.getElementById('sync-timer').innerText = `LAST SYNC: ${new Date().toLocaleTimeString()}`;
+  try {
+    const res = await fetch('/api/unified-live');
+    const data = await res.json();
 
-        const statsR = await fetch('/api/break-stats');
-        const stats = await statsR.json();
-        renderGrid(stats, (Number(data.live.twod[0]) + Number(data.live.twod[1])) % 10);
-    } catch (e) {
-        document.getElementById('broadcast').innerText = "📡 RECONNECTING TO RENDER SERVER...";
-    }
+    document.getElementById('twod').innerText = data.live.twod;
+    document.getElementById('broadcast').innerText = data.broadcast;
+    document.getElementById('sync').innerText =
+      'LAST SYNC: ' + new Date().toLocaleTimeString();
+
+    renderGrid(data.stats, data.breakDigit);
+  } catch {
+    document.getElementById('broadcast').innerText =
+      '📡 RECONNECTING TO SENTINEL CORE...';
+  }
 }
 
 function renderGrid(stats, currentBreak) {
-    const g = document.getElementById('grid');
-    g.innerHTML = '';
-    stats.forEach(s => {
-        const isActive = s.break_digit === currentBreak;
-        g.innerHTML += `
-            <div class="card ${isActive ? 'active' : ''}">
-                <div style="font-size:0.7rem;">BREAK ${s.break_digit}</div>
-                <div class="count">${s.total_count}</div>
-            </div>`;
-    });
+  const g = document.getElementById('grid');
+  g.innerHTML = '';
+  stats.forEach(s => {
+    g.innerHTML += `
+      <div class="card ${s.break_digit===currentBreak?'active':''}">
+        <div>BREAK ${s.break_digit}</div>
+        <div class="count">${s.total_count}</div>
+      </div>`;
+  });
 }
 
-setInterval(sync, 3000);
 sync();
+setInterval(sync, 3000);
 </script>
 </body>
 </html>
