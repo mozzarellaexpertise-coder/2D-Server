@@ -1,6 +1,5 @@
 /**
- * 🛡️ SENTINEL v6.5.4 — SINGLE ORACLE CORE
- * DB = SOURCE OF TRUTH
+ * 🛡️ SENTINEL v6.5.5 — CRASH-PROOF, MANUAL-LOCK READY
  */
 
 require('dotenv').config();
@@ -15,33 +14,38 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 /* ===============================
-   CORE LOGIC
+   SAFE PREDICTIONS
 ================================ */
 async function calculatePredictions(twod) {
   const breakDigit = (Number(twod[0]) + Number(twod[1])) % 10;
 
-  await supabase.rpc('increment_break', {
-    p_break_digit: breakDigit.toString()
-  });
-
-  const signal =
+  const signal = 
 `📊 MAGNET: 3 | OFFSET: 1
 🐘 Double Twin Scan: ${twod}
-⚠️ သတိ: အလှည့်အပြောင်း စတင်လာပါပြီ
+⚠️ သတိ: အလှည့်အပြောင်း စတင်လာပြီ
 🎯 Target Focus: BREAK ${breakDigit}
 📡 Sentinel: LOCKED`;
 
-  await supabase.from('broadcast').upsert({
-    id: 'live_feed',
-    signal_message: signal,
-    updated_at: new Date()
-  });
+  // ❌ CRASH-PROOF WRITE
+  const { data: bc, error: bcErr } = await supabase
+    .from('broadcast')
+    .select('manual_lock')
+    .eq('id','live_feed')
+    .maybeSingle();
+
+  if (bcErr) console.error('❌ Broadcast read failed:', bcErr.message);
+
+  // Write only if NOT locked
+  if (!bc?.manual_lock) {
+    await supabase.from('broadcast').upsert({
+      id: 'live_feed',
+      signal_message: signal,
+      updated_at: new Date()
+    });
+  }
 
   return breakDigit;
 }
@@ -58,21 +62,11 @@ app.get('/api/unified-live', async (req, res) => {
 
     const breakDigit = await calculatePredictions(live.live.twod);
 
-// 🔎 Check if manual override is active
-const { data: bc } = await supabase
-  .from('broadcast')
-  .select('manual_lock')
-  .eq('id', 'live_feed')
-  .single();
-
-// ✍️ Only auto-write if NOT manually locked
-if (!bc?.manual_lock) {
-  await supabase.from('broadcast').upsert({
-    id: 'live_feed',
-    signal_message: signal,
-    updated_at: new Date()
-  });
-}
+    const { data: bc } = await supabase
+      .from('broadcast')
+      .select('signal_message')
+      .eq('id','live_feed')
+      .maybeSingle();
 
     const { data: stats } = await supabase
       .from('break_stats')
@@ -87,11 +81,18 @@ if (!bc?.manual_lock) {
       breakDigit
     });
   } catch (e) {
+    console.error('❌ /api/unified-live failed:', e.message);
     res.status(500).json({ error:'OFFLINE' });
   }
 });
 
-app.get('/', (_,res)=>res.send('🛡️ SENTINEL ONLINE'));
+/* ===============================
+   SIMPLE HEALTH CHECK
+================================ */
+app.get('/', (_, res) => res.send('🛡️ SENTINEL v6.5.5 ONLINE'));
 
+/* ===============================
+   START SERVER
+================================ */
 const PORT = process.env.PORT || 10000;
-app.listen(PORT,'0.0.0.0',()=>console.log('🚀 SENTINEL ACTIVE'));
+app.listen(PORT,'0.0.0.0',()=>console.log(`🚀 SENTINEL ACTIVE ON ${PORT}`));

@@ -3,72 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🛡️ SENTINEL v6.5.4 | COMMAND CORE</title>
+  <title>🛡️ SENTINEL v6.5.5 | COMMAND CORE</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
   <style>
-    :root {
-      --bg:#030305; --neon-blue:#00d9ff; --neon-green:#00ff9d;
-      --panel:#0d0d1a; --danger:#ff4444;
-    }
-    body {
-      margin:0; background:var(--bg); color:var(--neon-blue);
-      font-family:'Share Tech Mono', monospace;
-    }
-    .container {
-      display:flex; flex-direction:column; height:100vh;
-      padding:20px; gap:15px;
-    }
-    .broadcast-panel {
-      background:var(--panel);
-      border:2px solid var(--neon-blue);
-      padding:20px;
-      min-height:120px;
-      white-space:pre-wrap;
-      color:#fff;
-      box-shadow:0 0 15px rgba(0,217,255,.25);
-    }
-    .market-hub {
-      display:flex; justify-content:space-between;
-      align-items:center;
-      border:1px dashed var(--neon-blue);
-      padding:15px;
-    }
-    .twod-main {
-      font-family:'Orbitron';
-      font-size:8rem;
-      color:#fff;
-      text-shadow:0 0 25px var(--neon-blue);
-    }
-    .grid {
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      gap:10px;
-      flex-grow:1;
-    }
-    .card {
-      background:#0a0a14;
-      border:1px solid rgba(0,217,255,.25);
-      padding:10px;
-      text-align:center;
-    }
-    .card.active {
-      border-color:var(--neon-green);
-      background:rgba(0,255,157,.1);
-    }
-    .count {
-      font-family:'Orbitron';
-      font-size:2.5rem;
-      color:var(--neon-green);
-    }
+    :root { --bg:#030305; --neon-blue:#00d9ff; --neon-green:#00ff9d; --panel:#0d0d1a; --danger:#ff4444; }
+    body { margin:0; background:var(--bg); color:var(--neon-blue); font-family:'Share Tech Mono', monospace; }
+    .container { display:flex; flex-direction:column; height:100vh; padding:20px; gap:15px; }
+    .broadcast-panel { background:var(--panel); border:2px solid var(--neon-blue); padding:20px; min-height:120px; white-space:pre-wrap; color:#fff; box-shadow:0 0 15px rgba(0,217,255,.25);}
+    .market-hub { display:flex; justify-content:space-between; align-items:center; border:1px dashed var(--neon-blue); padding:15px;}
+    .twod-main { font-family:'Orbitron'; font-size:8rem; color:#fff; text-shadow:0 0 25px var(--neon-blue);}
+    .grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; flex-grow:1; }
+    .card { background:#0a0a14; border:1px solid rgba(0,217,255,.25); padding:10px; text-align:center; }
+    .card.active { border-color:var(--neon-green); background:rgba(0,255,157,.1);}
+    .count { font-family:'Orbitron'; font-size:2.5rem; color:var(--neon-green); }
   </style>
 </head>
-
 <body>
 <div class="container">
   <div class="broadcast-panel" id="broadcast">📡 INITIALIZING...</div>
-
   <div class="market-hub">
     <div class="twod-main" id="twod">--</div>
     <div>
@@ -76,7 +30,6 @@
       <div id="sync" style="font-size:.8rem;margin-top:5px;">SYNC: WAITING</div>
     </div>
   </div>
-
   <div class="grid" id="grid"></div>
 </div>
 
@@ -88,13 +41,11 @@ async function sync() {
 
     document.getElementById('twod').innerText = data.live.twod;
     document.getElementById('broadcast').innerText = data.broadcast;
-    document.getElementById('sync').innerText =
-      'LAST SYNC: ' + new Date().toLocaleTimeString();
+    document.getElementById('sync').innerText = 'LAST SYNC: ' + new Date().toLocaleTimeString();
 
     renderGrid(data.stats, data.breakDigit);
   } catch {
-    document.getElementById('broadcast').innerText =
-      '📡 RECONNECTING TO SENTINEL CORE...';
+    document.getElementById('broadcast').innerText = '📡 RECONNECTING TO SENTINEL CORE...';
   }
 }
 
