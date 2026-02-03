@@ -1,6 +1,7 @@
 /**
- * 🛡️ SENTINEL v6.5.1 — HARDENED AUTHORITATIVE CORE
- * Optimized for Vercel + Supabase
+ * 🛡️ SENTINEL v6.5.2 — RENDER-HARDENED CORE
+ * Project Reference: Monday Kickoff
+ * Strategy: Stealth Neutralized
  */
 require('dotenv').config();
 const express = require('express');
@@ -11,8 +12,8 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 app.use(express.json());
 
-// Note: Vercel serves the /public folder automatically. 
-// This is a fallback for local testing.
+// Support for Render/Vercel static file paths
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, '../public')));
 
 const supabase = createClient(
@@ -25,76 +26,50 @@ const supabase = createClient(
 ================================ */
 async function calculatePredictions(latestTwod) {
   try {
-    // 1. Log Raw Event
+    // 1. Raw Log
     await supabase.from('logs').insert([{ twod: latestTwod }]);
 
-    // 2. Calculate Break Digit
+    // 2. Break Calc
     const breakDigit = (Number(latestTwod[0]) + Number(latestTwod[1])) % 10;
 
-    // 3. Atomic Market Memory (RPC)
-    // Using 'p_' prefix to match the fixed SQL functions
-    const { error: bErr } = await supabase
-      .rpc('increment_break', { p_break_digit: breakDigit.toString() });
+    // 3. RPC calls using the 'p_' fixed parameters
+    await supabase.rpc('increment_break', { p_break_digit: breakDigit.toString() });
+    await supabase.rpc('increment_twod', { p_twod_value: latestTwod });
 
-    if (bErr) throw new Error(`increment_break → ${bErr.message}`);
-
-    const { error: tErr } = await supabase
-      .rpc('increment_twod', { p_twod_value: latestTwod });
-
-    if (tErr) throw new Error(`increment_twod → ${tErr.message}`);
-
-    // 4. DNA Keys (Project Reference: Monday Kickoff)
-    const front = 42;
-    const back = 54;
-    const magnet = [...(front / back).toString().replace('.', '')]
-                   .reduce((a, b) => a + Number(b), 0) % 10;
-
+    // 4. DNA Math
+    const front = 42; const back = 54;
+    const magnet = [...(front / back).toString().replace('.', '')].reduce((a, b) => a + Number(b), 0) % 10;
     const diff = Math.abs(front - back).toString();
     const offset = Math.abs(Number(diff[0]) - Number(diff[1] || 0));
 
-    // 5. Fetch Top 10
-    const { data: top10 } = await supabase
-      .from('twod_stats')
-      .select('twod, total_count')
-      .order('total_count', { ascending: false })
-      .limit(10);
-
-    const top10List = top10?.length ? top10.map(r => r.twod).join(', ') : '—';
-
-    // 6. Authoritative Broadcast
+    // 5. Signal Generation
     const signal = `
 📊 MAGNET: ${magnet} | OFFSET: ${offset}
 🧮 CURRENT BREAK: ${breakDigit}
-🏆 TOP 10 FREQUENT: ${top10List}
 🐘 Elephant Gravity: Break 1 (Vacuum)
-DNA RECALIBRATING... TARGET SEED: 82.50
+Status: Sentinel v5.2 standing by for 11:00 AM.
     `.trim();
 
-    await supabase.from('broadcast').upsert({
-      id: 'live_feed',
-      signal_message: signal,
-      updated_at: new Date()
-    });
+    await supabase.from('broadcast').upsert({ id: 'live_feed', signal_message: signal, updated_at: new Date() });
 
-    console.log(`✅ SENTINEL OK | 2D=${latestTwod}`);
+    console.log(`✅ SENTINEL PULSE: ${latestTwod}`);
     return signal;
-
   } catch (err) {
-    console.error('🔥 SENTINEL FAILURE:', err.message);
-    return '⚠️ SENTINEL DEGRADED — CHECK CORE LOGS';
+    console.error('🔥 CORE ERROR:', err.message);
+    return '⚠️ DEGRADED';
   }
 }
 
 /* ===============================
-   API ROUTES
+   ROUTES
 ================================ */
 app.get('/api/unified-live', async (req, res) => {
   try {
-    const { data } = await axios.get('https://api.thaistock2d.com/live', { timeout: 4000 });
-    const broadcast = await calculatePredictions(data.live.twod);
-    res.json({ live: data.live, broadcast });
-  } catch (err) {
-    res.status(500).json({ error: 'MARKET FEED LOST' });
+    const { data } = await axios.get('https://api.thaistock2d.com/live', { timeout: 4500 });
+    const bc = await calculatePredictions(data.live.twod);
+    res.json({ live: data.live, broadcast: bc });
+  } catch (e) {
+    res.status(500).json({ error: 'OFFLINE' });
   }
 });
 
@@ -105,8 +80,19 @@ app.get('/api/break-stats', async (req, res) => {
 
 app.get('/api/get-broadcast', async (req, res) => {
   const { data } = await supabase.from('broadcast').select('signal_message').eq('id', 'live_feed').single();
-  res.json(data || { signal_message: '📡 SENTINEL STANDBY' });
+  res.json(data || { signal_message: '📡 STANDBY' });
 });
 
-// Vercel handles the route, but export the app
-module.exports = app;
+// Root Route for Health Check
+app.get('/', (req, res) => {
+  res.send('🛡️ SENTINEL v6.5.2 ONLINE');
+});
+
+/* ===============================
+   BOOT (The Render Fix)
+================================ */
+const PORT = process.env.PORT || 10000;
+// We bind to 0.0.0.0 so Render can see the service
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 DOCTOR GEM: Sentinel is Live on Port ${PORT}`);
+});
