@@ -1,206 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="my"> <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>🛡️ SENTINEL v6.5 | COMMAND CORE</title>
+    <title>🛡️ SENTINEL v6.5.3 | COMMAND CORE</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --bg: #030305; 
-            --neon-blue: #00d9ff; 
-            --neon-green: #00ff9d; 
-            --panel: #0d0d1a; 
-            --gold: #ffcc00; 
-            --danger: #ff4444;
-            --glow: rgba(0, 217, 255, 0.3);
-        }
+        :root { --bg: #030305; --neon-blue: #00d9ff; --neon-green: #00ff9d; --panel: #0d0d1a; --danger: #ff4444; }
+        body { margin: 0; background: var(--bg); color: var(--neon-blue); font-family: 'Share Tech Mono', monospace; overflow-x: hidden; }
+        .container { display: flex; flex-direction: column; height: 100vh; padding: 20px; gap: 15px; }
         
-        body { 
-            margin: 0; 
-            background: var(--bg); 
-            color: var(--neon-blue); 
-            font-family: 'Share Tech Mono', monospace; 
-            overflow: hidden; 
-            text-transform: uppercase;
-        }
-
-        .container { 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-            padding: 20px; 
-            gap: 15px; 
-            box-sizing: border-box;
-        }
-
-        /* HEADER & BROADCAST */
         .broadcast-panel {
-            background: var(--panel);
-            border: 2px solid var(--neon-blue);
-            padding: 20px;
-            border-radius: 4px;
-            color: #fff;
-            font-size: 1.2rem;
-            text-align: left;
-            box-shadow: 0 0 15px var(--glow);
-            white-space: pre-wrap;
-            position: relative;
-            min-height: 100px;
+            background: var(--panel); border: 2px solid var(--neon-blue); padding: 20px; border-radius: 4px;
+            color: #fff; font-size: 1.1rem; min-height: 120px;
+            white-space: pre-wrap; /* 🐘 IMPORTANT FOR NEW LINES */
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.2);
         }
 
-        .broadcast-panel::before {
-            content: "📡 AUTHORITATIVE_SIGNAL";
-            display: block;
-            font-size: 0.7rem;
-            color: var(--neon-blue);
-            margin-bottom: 8px;
-            border-bottom: 1px solid var(--neon-blue);
-        }
-
-        /* MAIN DISPLAY */
-        .market-hub {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            background: rgba(255,255,255,0.02);
-            padding: 10px;
-            border: 1px dashed var(--neon-blue);
-        }
-
-        .twod-main { 
-            font-family: 'Orbitron'; 
-            font-size: 9rem; 
-            color: #fff; 
-            text-shadow: 0 0 30px var(--neon-blue);
-            line-height: 1;
-        }
-
-        .status-block {
-            text-align: right;
-        }
-
-        .live-tag {
-            background: var(--danger);
-            color: #000;
-            padding: 2px 8px;
-            font-weight: bold;
-            font-size: 1rem;
-            animation: blink 1s infinite;
-        }
-
-        /* BREAK GRID */
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(5, 1fr); 
-            gap: 15px; 
-            flex-grow: 1; 
-        }
-
-        .card { 
-            background: #0a0a14; 
-            border: 1px solid rgba(0, 217, 255, 0.2); 
-            border-radius: 4px;
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
-            position: relative;
-            transition: all 0.3s;
-        }
-
-        .card.active {
-            border-color: var(--neon-green);
-            background: rgba(0, 255, 157, 0.05);
-        }
-
-        .card .label { font-size: 0.8rem; color: var(--neon-blue); margin-bottom: 5px; }
-        .card .count { font-family: 'Orbitron'; font-size: 3rem; color: var(--neon-green); }
+        .market-hub { display: flex; justify-content: space-around; align-items: center; border: 1px dashed var(--neon-blue); padding: 15px; }
+        .twod-main { font-family: 'Orbitron'; font-size: 8rem; color: #fff; text-shadow: 0 0 20px var(--neon-blue); }
         
-        .high-activity { color: var(--gold) !important; text-shadow: 0 0 15px var(--gold); }
-
-        @keyframes blink { 
-            0% { opacity: 1; } 
-            50% { opacity: 0.3; } 
-            100% { opacity: 1; } 
-        }
-
-        #sync-timer { font-size: 0.7rem; color: var(--neon-green); opacity: 0.5; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; flex-grow: 1; }
+        .card { background: #0a0a14; border: 1px solid rgba(0, 217, 255, 0.2); border-radius: 4px; display: flex; flex-direction: column; align-items: center; padding: 10px; }
+        .card.active { border-color: var(--neon-green); background: rgba(0, 255, 157, 0.1); }
+        .card .count { font-family: 'Orbitron'; font-size: 2.5rem; color: var(--neon-green); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="broadcast-panel" id="broadcast">INITIALIZING SENTINEL v6.5.3 CORE...</div>
-    
+    <div class="broadcast-panel" id="broadcast">INITIALIZING v6.5.3...</div>
     <div class="market-hub">
         <div class="twod-main" id="twod">--</div>
         <div class="status-block">
-            <div class="live-tag">LIVE MARKET FEED</div>
-            <div id="sync-timer">LAST SYNC: JUST NOW</div>
+            <div style="background:var(--danger);color:#000;padding:5px;font-weight:bold;">LIVE FEED</div>
+            <div id="sync-timer" style="font-size:0.8rem; margin-top:5px;">SYNC: WAITING...</div>
         </div>
     </div>
-
     <div class="grid" id="grid"></div>
 </div>
 
 <script>
-let lastKnownTwod = null;
-
 async function sync() {
     try {
-        const liveR = await fetch('/api/unified-live');
-        const liveD = await liveR.json();
+        // Fetch everything in one go or handle separately
+        const res = await fetch('/api/unified-live');
+        const data = await res.json();
         
-        // Update 2D Display
-        const twodEl = document.getElementById('twod');
-        twodEl.innerText = liveD.live.twod;
-        
-        // If number changed, add a temporary "glow"
-        if (lastKnownTwod !== liveD.live.twod) {
-            twodEl.style.textShadow = "0 0 50px #00ff9d";
-            setTimeout(() => twodEl.style.textShadow = "0 0 30px var(--neon-blue)", 1000);
-            lastKnownTwod = liveD.live.twod;
-        }
-
-        // Update Broadcast
-        document.getElementById('broadcast').innerText = liveD.broadcast;
-
-        // Update Stats Grid
-        const statsR = await fetch('/api/break-stats');
-        const stats = await statsR.json();
-        renderGrid(stats, (Number(liveD.live.twod[0]) + Number(liveD.live.twod[1])) % 10);
-
+        document.getElementById('twod').innerText = data.live.twod;
+        document.getElementById('broadcast').innerText = data.broadcast;
         document.getElementById('sync-timer').innerText = `LAST SYNC: ${new Date().toLocaleTimeString()}`;
 
+        const statsR = await fetch('/api/break-stats');
+        const stats = await statsR.json();
+        renderGrid(stats, (Number(data.live.twod[0]) + Number(data.live.twod[1])) % 10);
     } catch (e) {
-        document.getElementById('broadcast').innerText = "⚠️ CONNECTION INTERRUPTED - RETRYING...";
+        document.getElementById('broadcast').innerText = "📡 RECONNECTING TO RENDER SERVER...";
     }
 }
 
 function renderGrid(stats, currentBreak) {
     const g = document.getElementById('grid');
     g.innerHTML = '';
-    
-    // Calculate max for high-activity highlighting
-    const max = Math.max(...stats.map(s => s.total_count));
-
     stats.forEach(s => {
-        const isHigh = s.total_count === max && max > 0;
         const isActive = s.break_digit === currentBreak;
-        
         g.innerHTML += `
             <div class="card ${isActive ? 'active' : ''}">
-                <div class="label">BREAK ${s.break_digit}</div>
-                <div class="count ${isHigh ? 'high-activity' : ''}">
-                    ${s.total_count}
-                </div>
+                <div style="font-size:0.7rem;">BREAK ${s.break_digit}</div>
+                <div class="count">${s.total_count}</div>
             </div>`;
     });
 }
 
-// Higher frequency sync for "Shadow Play" readiness
-setInterval(sync, 2500);
+setInterval(sync, 3000);
 sync();
 </script>
 </body>
