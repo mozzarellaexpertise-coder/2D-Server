@@ -58,11 +58,21 @@ app.get('/api/unified-live', async (req, res) => {
 
     const breakDigit = await calculatePredictions(live.live.twod);
 
-    const { data: bc } = await supabase
-      .from('broadcast')
-      .select('signal_message')
-      .eq('id','live_feed')
-      .single();
+// 🔎 Check if manual override is active
+const { data: bc } = await supabase
+  .from('broadcast')
+  .select('manual_lock')
+  .eq('id', 'live_feed')
+  .single();
+
+// ✍️ Only auto-write if NOT manually locked
+if (!bc?.manual_lock) {
+  await supabase.from('broadcast').upsert({
+    id: 'live_feed',
+    signal_message: signal,
+    updated_at: new Date()
+  });
+}
 
     const { data: stats } = await supabase
       .from('break_stats')
