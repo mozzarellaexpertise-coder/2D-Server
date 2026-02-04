@@ -22,38 +22,24 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 async function calculatePredictions(twod) {
   const breakDigit = (Number(twod[0]) + Number(twod[1])) % 10;
 
-  // 🚑 EMERGENCY WRITE — THIS WAS MISSING
-  await supabase.from('break_logs').insert({
-    live_2d: twod,
-    break_value: breakDigit,
-    is_hit: null,
-    constant_used: 'sentinel_v6'
-  });
-
-  await supabase.rpc('increment_break', {
-    break_digit: breakDigit
-  });
-
-  const signal = 
-`📊 MAGNET: 3 | OFFSET: 1
-🐘 Double Twin Scan: ${twod}
-⚠️ သတိ: အလှည့်အပြောင်း စတင်လာပြီ
-🎯 Target Focus: BREAK ${breakDigit}
-📡 Sentinel: LOCKED`;
-
-  const { data: bc } = await supabase
-    .from('broadcast')
-    .select('manual_lock')
-    .eq('id','live_feed')
-    .maybeSingle();
-
-  if (!bc?.manual_lock) {
-    await supabase.from('broadcast').upsert({
-      id: 'live_feed',
-      signal_message: signal,
-      updated_at: new Date()
+  // 🔥 DIRECT WRITE — NO LOCK, NO RPC, NO CONDITIONS
+  const { error } = await supabase
+    .from('break_stats')
+    .upsert({
+      break_digit: breakDigit,
+      total_count: 999
     });
+
+  if (error) {
+    console.error('🔥 HARD WRITE FAILED:', error);
+  } else {
+    console.log('✅ HARD WRITE OK:', breakDigit);
   }
+
+  await supabase.from('broadcast').update({
+    signal_message: `🔥 FORCE WRITE OK — BREAK ${breakDigit}`,
+    updated_at: new Date()
+  }).eq('id', 'live_feed');
 
   return breakDigit;
 }
