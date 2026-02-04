@@ -22,6 +22,18 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 async function calculatePredictions(twod) {
   const breakDigit = (Number(twod[0]) + Number(twod[1])) % 10;
 
+  // 🚑 EMERGENCY WRITE — THIS WAS MISSING
+  await supabase.from('break_logs').insert({
+    live_2d: twod,
+    break_value: breakDigit,
+    is_hit: null,
+    constant_used: 'sentinel_v6'
+  });
+
+  await supabase.rpc('increment_break', {
+    break_digit: breakDigit
+  });
+
   const signal = 
 `📊 MAGNET: 3 | OFFSET: 1
 🐘 Double Twin Scan: ${twod}
@@ -29,16 +41,12 @@ async function calculatePredictions(twod) {
 🎯 Target Focus: BREAK ${breakDigit}
 📡 Sentinel: LOCKED`;
 
-  // ❌ CRASH-PROOF WRITE
-  const { data: bc, error: bcErr } = await supabase
+  const { data: bc } = await supabase
     .from('broadcast')
     .select('manual_lock')
     .eq('id','live_feed')
     .maybeSingle();
 
-  if (bcErr) console.error('❌ Broadcast read failed:', bcErr.message);
-
-  // Write only if NOT locked
   if (!bc?.manual_lock) {
     await supabase.from('broadcast').upsert({
       id: 'live_feed',
