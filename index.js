@@ -22,62 +22,43 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 async function calculatePredictions(twod) {
   const breakDigit = (Number(twod[0]) + Number(twod[1])) % 10;
 
-  // 🔥 DIRECT WRITE — NO LOCK, NO RPC, NO CONDITIONS
-  const { error } = await supabase
-    .from('break_stats')
-    .upsert({
-      break_digit: breakDigit,
-    });
+  // 🧠 LOG EVENT (optional but good)
+  await supabase.from('break_logs').insert({
+    live_2d: twod,
+    break_value: breakDigit,
+    is_hit: null,
+    constant_used: 'sentinel_v6'
+  });
+
+  // ✅ SINGLE, SAFE INCREMENT
+  const { error } = await supabase.rpc('increment_break', {
+    break_digit: breakDigit
+  });
 
   if (error) {
-    console.error('🔥 HARD WRITE FAILED:', error);
+    console.error('❌ increment_break failed:', error);
   } else {
-    console.log('✅ HARD WRITE OK:', breakDigit);
+    console.log('✅ break incremented:', breakDigit);
   }
 
-  await supabase.from('broadcast').update({
-    signal_message: `🔥 FORCE WRITE OK — BREAK ${breakDigit}`,
-    updated_at: new Date()
-  }).eq('id', 'live_feed');
+  // 🛡️ Broadcast (lock-aware)
+  const signal = `🎯 Target Focus: BREAK ${breakDigit}`;
+
+  const { data: bc } = await supabase
+    .from('broadcast')
+    .select('manual_lock')
+    .eq('id','live_feed')
+    .maybeSingle();
+
+  if (!bc?.manual_lock) {
+    await supabase.from('broadcast').update({
+      signal_message: signal,
+      updated_at: new Date()
+    }).eq('id','live_feed');
+  }
 
   return breakDigit;
 }
-
-/* ===============================
-   UNIFIED LIVE ENDPOINT
-================================ */
-app.get('/api/unified-live', async (req, res) => {
-  try {
-    const { data: live } = await axios.get(
-      'https://api.thaistock2d.com/live',
-      { timeout: 4000 }
-    );
-
-    const breakDigit = await calculatePredictions(live.live.twod);
-
-    const { data: bc } = await supabase
-      .from('broadcast')
-      .select('signal_message')
-      .eq('id','live_feed')
-      .maybeSingle();
-
-    const { data: stats } = await supabase
-      .from('break_stats')
-      .select('*')
-      .order('break_digit');
-
-    res.setHeader('Content-Type','application/json; charset=utf-8');
-    res.json({
-      live: live.live,
-      broadcast: bc?.signal_message || '📡 STANDBY',
-      stats,
-      breakDigit
-    });
-  } catch (e) {
-    console.error('❌ /api/unified-live failed:', e.message);
-    res.status(500).json({ error:'OFFLINE' });
-  }
-});
 
 /* ===============================
    SIMPLE HEALTH CHECK
