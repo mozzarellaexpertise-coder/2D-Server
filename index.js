@@ -27,7 +27,6 @@ async function calculatePredictions(twod) {
     .from('break_stats')
     .upsert({
       break_digit: breakDigit,
-      total_count: 999
     });
 
   if (error) {
